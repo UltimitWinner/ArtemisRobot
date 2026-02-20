@@ -128,7 +128,7 @@ int main(void){
                 break;
             case Dock:
                 break;
-            case Lazer:
+            case Laser:
                 break;
             case Done:
                 switch(done){

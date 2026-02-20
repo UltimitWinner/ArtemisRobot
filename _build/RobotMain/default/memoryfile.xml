@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project>
-  <executable name="dist/default/production/RobotMain.X.production.elf">
+  <executable name="J:\groups\mech-artemis\RobotMain.X\out\RobotMain\default.elf">
     <memory name="data">
       <units>bytes</units>
       <length>2048</length>

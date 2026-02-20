@@ -1,0 +1,8 @@
+[
+{
+  "directory": "J:/groups/mech-artemis/RobotMain.X/_build/RobotMain/default",
+  "command": "c:\\PROGRA~1\\MICROC~1\\xc16\\v2.10\\bin\\xc16-gcc.exe -DXPRJ_default=default -D__DEBUG -D__MPLAB_DEBUGGER_SIMULATOR=1 -IJ:/groups/mech-artemis/RobotMain.X/cmake/RobotMain/default/../../.. -x c -g -mcpu=24F16KA301 -O0 -msmart-io=1 -Wall -msfr-warn=off -mdfp=C:/Users/forsb/.mchp_packs/Microchip/PIC24F-KA-KL-KM_DFP/1.5.253/xc16 -o CMakeFiles\\RobotMain_default_default_XC16_compile.dir\\J_\\groups\\mech-artemis\\RobotMain.X\\mainXC16.c.o -c J:\\groups\\mech-artemis\\RobotMain.X\\mainXC16.c",
+  "file": "J:/groups/mech-artemis/RobotMain.X/mainXC16.c",
+  "output": "J:/groups/mech-artemis/RobotMain.X/_build/RobotMain/default/CMakeFiles/RobotMain_default_default_XC16_compile.dir/J_/groups/mech-artemis/RobotMain.X/mainXC16.c.o"
+}
+]

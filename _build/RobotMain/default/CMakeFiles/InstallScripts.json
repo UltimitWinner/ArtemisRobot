@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"J:/groups/mech-artemis/RobotMain.X/_build/RobotMain/default/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

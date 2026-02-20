@@ -65,10 +65,10 @@ Default Scalar Model: Small
 section                    address   length (PC units)   length (bytes) (dec)
 -------                    -------   -----------------   --------------------
 .text                        0x200                0xf6           0x171  (369)
-.text                        0x2f6               0x21e           0x32d  (813)
-.dinit                       0x514                 0x8             0xc  (12)
+.text                        0x2f6               0x220           0x330  (816)
+.dinit                       0x516                 0x8             0xc  (12)
 
-                 Total "program" memory used (bytes):          0x4aa  (1194) 7%
+                 Total "program" memory used (bytes):          0x4ad  (1197) 7%
 
 
 "data" Memory  [Origin = 0x800, Length = 0x800]
@@ -100,7 +100,7 @@ External Symbols in Data Memory (by address):
                     0x0806                  _ballColor
                     0x0808                  _canyon
                     0x080a                  _dock
-                    0x080c                  _lazer
+                    0x080c                  _laser
                     0x080e                  _done
                     0x0810                  _milestone5
                     0x0812                  _hasBall
@@ -119,7 +119,7 @@ External Symbols in Data Memory (by name):
                     0x080a                  _dock
                     0x080e                  _done
                     0x0812                  _hasBall
-                    0x080c                  _lazer
+                    0x080c                  _laser
                     0x0818                  _leftDir
                     0x0814                  _leftVel
                     0x0802                  _line
@@ -140,9 +140,9 @@ External Symbols in Program Memory (by address):
                   0x0002de                  __OC2Interupt
                   0x0002f0                  __DefaultInterrupt
                   0x0002f6                  _main
-                  0x0004b4                  _sing
-                  0x0004d0                  _drive
-                  0x00050a                  _stop
+                  0x0004b6                  _sing
+                  0x0004d2                  _drive
+                  0x00050c                  _stop
 
 External Symbols in Program Memory (by name):
 
@@ -153,10 +153,10 @@ External Symbols in Program Memory (by name):
                   0x000252                  __data_init_standard
                   0x00023c                  __psv_init
                   0x000200                  __resetPRI
-                  0x0004d0                  _drive
+                  0x0004d2                  _drive
                   0x0002f6                  _main
-                  0x0004b4                  _sing
-                  0x00050a                  _stop
+                  0x0004b6                  _sing
+                  0x00050c                  _stop
 
 Memory Configuration
 
@@ -273,9 +273,9 @@ __FDS
  *(.debug_abbrev)
  .debug_abbrev    0x000000        0x149 build/default/production/mainXC16.o
 
-.debug_line       0x000000        0x1b3
+.debug_line       0x000000        0x1b4
  *(.debug_line)
- .debug_line      0x000000        0x1b3 build/default/production/mainXC16.o
+ .debug_line      0x000000        0x1b4 build/default/production/mainXC16.o
 
 .debug_frame      0x000000         0xc4
  *(.debug_frame)
@@ -944,7 +944,7 @@ __c30_signature
                     0x0806                  _ballColor
                     0x0808                  _canyon
                     0x080a                  _dock
-                    0x080c                  _lazer
+                    0x080c                  _laser
                     0x080e                  _done
                     0x0810                  _milestone5
                     0x0812                  _hasBall
@@ -963,12 +963,12 @@ __c30_signature
  .ivt._T1Interrupt
                   0x00001a          0x2 build/default/production/mainXC16.o
 
-.text             0x0002f6        0x21e
- .text            0x0002f6        0x21e build/default/production/mainXC16.o
+.text             0x0002f6        0x220
+ .text            0x0002f6        0x220 build/default/production/mainXC16.o
                   0x0002f6                  _main
-                  0x0004b4                  _sing
-                  0x0004d0                  _drive
-                  0x00050a                  _stop
+                  0x0004b6                  _sing
+                  0x0004d2                  _drive
+                  0x00050c                  _stop
 
-.dinit            0x000514          0x8
- .dinit           0x000514          0x8 data_init
+.dinit            0x000516          0x8
+ .dinit           0x000516          0x8 data_init

@@ -1,0 +1,9 @@
+# ninja log v7
+243	2237	7933233906879364	CMakeFiles/RobotMain_default_default_XC16_compile.dir/J_/groups/mech-artemis/RobotMain.X/mainXC16.c.o	6ab28a6ddaf278e8
+2644	7666	7933233931159564	J:/groups/mech-artemis/RobotMain.X/out/RobotMain/default.elf	b6248d81f0c929ed
+7692	8447	7933233981559980	CMakeFiles/RobotMain_default_Bin2Hex	a269d65c4b99edaf
+7692	8447	7933233981559980	J:/groups/mech-artemis/RobotMain.X/out/RobotMain/default.hex	a269d65c4b99edaf
+7692	8447	7933233981559980	J:/groups/mech-artemis/RobotMain.X/_build/RobotMain/default/CMakeFiles/RobotMain_default_Bin2Hex	a269d65c4b99edaf
+266	675	7933249374286940	CMakeFiles/RobotMain_default_Bin2Hex	a269d65c4b99edaf
+266	675	7933249374286940	J:/groups/mech-artemis/RobotMain.X/out/RobotMain/default.hex	a269d65c4b99edaf
+266	675	7933249374286940	J:/groups/mech-artemis/RobotMain.X/_build/RobotMain/default/CMakeFiles/RobotMain_default_Bin2Hex	a269d65c4b99edaf
