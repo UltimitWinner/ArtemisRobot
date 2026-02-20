@@ -119,7 +119,7 @@ int main(void){
                     default:
                         line = Right;
                 }
-                
+                break;
             case Ball:
                 break;
             case Dump:
@@ -231,8 +231,8 @@ int main(void){
 }
 
 void sing(){
-    leftVel = 500;
-    rightVel = 500;
+    leftVel = 100;
+    rightVel = 100;
     leftDir ^= 1;
     rightDir = 1 ^ leftDir;
     drive();
