@@ -18,8 +18,8 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <itemPath>mainXC16.c</itemPath>
     </logicalFolder>
+    <itemPath>mainXC16.c</itemPath>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
