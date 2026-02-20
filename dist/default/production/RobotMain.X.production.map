@@ -65,10 +65,10 @@ Default Scalar Model: Small
 section                    address   length (PC units)   length (bytes) (dec)
 -------                    -------   -----------------   --------------------
 .text                        0x200                0xf6           0x171  (369)
-.text                        0x2f6               0x220           0x330  (816)
-.dinit                       0x516                 0x8             0xc  (12)
+.text                        0x2f6               0x224           0x336  (822)
+.dinit                       0x51a                 0x8             0xc  (12)
 
-                 Total "program" memory used (bytes):          0x4ad  (1197) 7%
+                 Total "program" memory used (bytes):          0x4b3  (1203) 7%
 
 
 "data" Memory  [Origin = 0x800, Length = 0x800]
@@ -137,7 +137,7 @@ External Symbols in Program Memory (by address):
                   0x000252                  __data_init_standard
                   0x000252                  __data_init
                   0x0002c8                  __T1Interrupt
-                  0x0002de                  __OC2Interupt
+                  0x0002de                  __OC2Interrupt
                   0x0002f0                  __DefaultInterrupt
                   0x0002f6                  _main
                   0x0004b6                  _sing
@@ -147,7 +147,7 @@ External Symbols in Program Memory (by address):
 External Symbols in Program Memory (by name):
 
                   0x0002f0                  __DefaultInterrupt
-                  0x0002de                  __OC2Interupt
+                  0x0002de                  __OC2Interrupt
                   0x0002c8                  __T1Interrupt
                   0x000252                  __data_init
                   0x000252                  __data_init_standard
@@ -222,7 +222,7 @@ LOAD c:/program files/microchip/xc16/v2.10/bin/bin/../../lib\libfx-elf.a
  *(.isr*)
  .isr.text        0x0002c8         0x28 build/default/production/mainXC16.o
                   0x0002c8                  __T1Interrupt
-                  0x0002de                  __OC2Interupt
+                  0x0002de                  __OC2Interrupt
  .isr             0x0002f0          0x4 default_isr
                   0x0002f0                  __DefaultInterrupt
  *(.libc)
@@ -264,9 +264,9 @@ __FDS
 .comment
  *(.comment)
 
-.debug_info       0x000000       0x1304
+.debug_info       0x000000       0x130a
  *(.debug_info)
- .debug_info      0x000000       0x1304 build/default/production/mainXC16.o
+ .debug_info      0x000000       0x130a build/default/production/mainXC16.o
  *(.gnu.linkonce.wi.*)
 
 .debug_abbrev     0x000000        0x149
@@ -292,10 +292,10 @@ __FDS
  *(.debug_macinfo)
 
 .debug_pubnames
-                  0x000000        0x10a
+                  0x000000        0x10b
  *(.debug_pubnames)
  .debug_pubnames
-                  0x000000        0x10a build/default/production/mainXC16.o
+                  0x000000        0x10b build/default/production/mainXC16.o
 
 .debug_ranges
  *(.debug_ranges)
@@ -963,12 +963,17 @@ __c30_signature
  .ivt._T1Interrupt
                   0x00001a          0x2 build/default/production/mainXC16.o
 
-.text             0x0002f6        0x220
- .text            0x0002f6        0x220 build/default/production/mainXC16.o
+.ivt._OC2Interrupt
+                  0x000020          0x2
+ .ivt._OC2Interrupt
+                  0x000020          0x2 build/default/production/mainXC16.o
+
+.text             0x0002f6        0x224
+ .text            0x0002f6        0x224 build/default/production/mainXC16.o
                   0x0002f6                  _main
                   0x0004b6                  _sing
                   0x0004d2                  _drive
                   0x00050c                  _stop
 
-.dinit            0x000516          0x8
- .dinit           0x000516          0x8 data_init
+.dinit            0x00051a          0x8
+ .dinit           0x00051a          0x8 data_init

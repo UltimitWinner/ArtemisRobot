@@ -18,7 +18,7 @@ enum {Left1, Right1, Exit} canyon;
 enum {Turn, Forward} dock;
 enum {Sensor, Further} laser;
 enum {Sing, Stop} done;
-enum {Forward1, Turn90, Forward2, Turn180, Forward3, End} milestone5;
+enum {Forward1, Turn90, Forward2, Turn180, Forward3, Finished} milestone5;
 
 //variable/flag declarations
 unsigned char hasBall = 0;
@@ -56,7 +56,7 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void){
 //    }
 }
 
-void __attribute__((interrupt, no_auto_psv)) _OC2Interupt(void){
+void __attribute__((interrupt, no_auto_psv)) _OC2Interrupt(void){
     _OC2IF = 0;
     steps ++;
 }
@@ -82,7 +82,7 @@ int main(void){
     T1CONbits.TON = 1;
     T1CONbits.TCS = 0;
     T1CONbits.TCKPS = 0b11; //prescaler of 256
-    PR1 = 15625; //period of 1 second
+    PR1 = 7813; //period of 1 second
     _T1IP = 6;
     _T1IF = 0;
     _T1IE = 1;
@@ -162,7 +162,7 @@ int main(void){
                         leftDir = 1;
                         rightDir = 0;
                         drive();
-                        if(steps>=425){
+                        if(steps>=850){
                             milestone5 = Forward2;
                             time = 0;
                             steps = 0;
@@ -188,7 +188,7 @@ int main(void){
                         leftDir = 1;
                         rightDir = 0;
                         drive();
-                        if(steps>=850){
+                        if(steps>=1700){
                             milestone5 = Forward3;
                             time = 0;
                             steps = 0;
@@ -203,12 +203,12 @@ int main(void){
                         rightDir = 0;
                         drive();
                         if(time>=1){
-                            milestone5 = Done;
+                            milestone5 = Finished;
                             time = 0;
                             steps = 0;
                         }
                         break;
-                    case(Done):
+                    case(Finished):
                         leftVel = 0;
                         rightVel = 0;
                         leftDir = 0;
@@ -249,7 +249,7 @@ void drive(){
 }
 
 void stop(){
-    OC2R = 0;
-    OC1R = 0;
+    OC2R = leftVel;
+    OC1R = rightVel;
 }
                 

@@ -45,7 +45,7 @@ cmake_ninja_workdir = J$:/groups/mech-artemis/RobotMain.X/_build/RobotMain/defau
 build cmake_object_order_depends_target_RobotMain_default_default_XC16_compile: phony || .
 
 build CMakeFiles/RobotMain_default_default_XC16_compile.dir/J_/groups/mech-artemis/RobotMain.X/mainXC16.c.o: C_COMPILER__RobotMain_default_default_XC16_compile_unscanned_ J$:/groups/mech-artemis/RobotMain.X/mainXC16.c || cmake_object_order_depends_target_RobotMain_default_default_XC16_compile
-  DEFINES = -DXPRJ_default=default -D__DEBUG -D__MPLAB_DEBUGGER_SIMULATOR=1
+  DEFINES = -DXPRJ_default=default -D__DEBUG -D__MPLAB_DEBUGGER_SNAP=1
   DEP_FILE = CMakeFiles\RobotMain_default_default_XC16_compile.dir\J_\groups\mech-artemis\RobotMain.X\mainXC16.c.o.d
   FLAGS = -x c -g -mcpu=24F16KA301 -O0 -msmart-io=1 -Wall -msfr-warn=off -mdfp=C:/Users/forsb/.mchp_packs/Microchip/PIC24F-KA-KL-KM_DFP/1.5.253/xc16
   INCLUDES = -IJ:/groups/mech-artemis/RobotMain.X/cmake/RobotMain/default/../../..
@@ -80,7 +80,7 @@ build cmake_object_order_depends_target_RobotMain_default_image_IOKfuFMv: phony 
 # Link the executable J:\groups\mech-artemis\RobotMain.X\out\RobotMain\default.elf
 
 build J$:/groups/mech-artemis/RobotMain.X/out/RobotMain/default.elf: C_EXECUTABLE_LINKER__RobotMain_default_image_IOKfuFMv_ CMakeFiles/RobotMain_default_default_XC16_compile.dir/J_/groups/mech-artemis/RobotMain.X/mainXC16.c.o || RobotMain_default_default_XC16_compile
-  LINK_FLAGS = -g -mcpu=24F16KA301 -Wl,--script=p24F16KA301.gld,--local-stack,--defsym=__MPLAB_BUILD=1,--defsym=__MPLAB_DEBUG=1,--defsym=__DEBUG=1,-D__DEBUG=__DEBUG,--defsym=__MPLAB_DEBUGGER_SIMULATOR=1,--stack=16,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--library-path=J:/groups/mech-artemis/RobotMain.X/cmake/RobotMain/default/../../..,--no-force-link,--smart-io,--report-mem,--memorysummary,memoryfile.xml -mdfp=C:/Users/forsb/.mchp_packs/Microchip/PIC24F-KA-KL-KM_DFP/1.5.253/xc16
+  LINK_FLAGS = -g -mcpu=24F16KA301 -mreserve=data@0x800:0x81f -mreserve=data@0x820:0x821 -mreserve=data@0x822:0x823 -mreserve=data@0x824:0x825 -mreserve=data@0x826:0x84f -Wl,--script=p24F16KA301.gld,--local-stack,--defsym=__MPLAB_BUILD=1,--defsym=__MPLAB_DEBUG=1,--defsym=__DEBUG=1,-D__DEBUG=__DEBUG,--defsym=__MPLAB_DEBUGGER_SNAP=1,--stack=16,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--library-path=J:/groups/mech-artemis/RobotMain.X/cmake/RobotMain/default/../../..,--no-force-link,--smart-io,--report-mem,--memorysummary,memoryfile.xml -mdfp=C:/Users/forsb/.mchp_packs/Microchip/PIC24F-KA-KL-KM_DFP/1.5.253/xc16
   OBJECT_DIR = CMakeFiles\RobotMain_default_image_IOKfuFMv.dir
   POST_BUILD = cd .
   PRE_LINK = cd .

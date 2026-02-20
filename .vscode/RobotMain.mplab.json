@@ -9,7 +9,7 @@
             "imageType": "application",
             "imagePath": "./out/RobotMain/default.elf",
             "toolProperties": "default-tool-base",
-            "tool": "Simulator",
+            "tool": "Snap",
             "packs": [
                 {
                     "name": "PIC24F-KA-KL-KM_DFP",
