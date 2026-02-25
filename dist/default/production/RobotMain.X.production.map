@@ -64,11 +64,11 @@ Default Scalar Model: Small
 
 section                    address   length (PC units)   length (bytes) (dec)
 -------                    -------   -----------------   --------------------
-.text                        0x200                0xf6           0x171  (369)
-.text                        0x2f6               0x224           0x336  (822)
-.dinit                       0x51a                 0x8             0xc  (12)
+.text                        0x200                0xf4           0x16e  (366)
+.text                        0x2f4               0x22a           0x33f  (831)
+.dinit                       0x51e                 0x8             0xc  (12)
 
-                 Total "program" memory used (bytes):          0x4b3  (1203) 7%
+                 Total "program" memory used (bytes):          0x4b9  (1209) 7%
 
 
 "data" Memory  [Origin = 0x800, Length = 0x800]
@@ -137,26 +137,26 @@ External Symbols in Program Memory (by address):
                   0x000252                  __data_init_standard
                   0x000252                  __data_init
                   0x0002c8                  __T1Interrupt
-                  0x0002de                  __OC2Interrupt
-                  0x0002f0                  __DefaultInterrupt
-                  0x0002f6                  _main
-                  0x0004b6                  _sing
-                  0x0004d2                  _drive
-                  0x00050c                  _stop
+                  0x0002dc                  __OC2Interrupt
+                  0x0002ee                  __DefaultInterrupt
+                  0x0002f4                  _main
+                  0x0004ba                  _sing
+                  0x0004d6                  _drive
+                  0x000510                  _stop
 
 External Symbols in Program Memory (by name):
 
-                  0x0002f0                  __DefaultInterrupt
-                  0x0002de                  __OC2Interrupt
+                  0x0002ee                  __DefaultInterrupt
+                  0x0002dc                  __OC2Interrupt
                   0x0002c8                  __T1Interrupt
                   0x000252                  __data_init
                   0x000252                  __data_init_standard
                   0x00023c                  __psv_init
                   0x000200                  __resetPRI
-                  0x0004d2                  _drive
-                  0x0002f6                  _main
-                  0x0004b6                  _sing
-                  0x00050c                  _stop
+                  0x0004d6                  _drive
+                  0x0002f4                  _main
+                  0x0004ba                  _sing
+                  0x000510                  _stop
 
 Memory Configuration
 
@@ -208,7 +208,7 @@ LOAD c:/program files/microchip/xc16/v2.10/bin/bin/../../lib\libfx-elf.a
                   0x000002          0x2 SHORT 0x0 ((ABSOLUTE (__reset) >> 0x10) & 0x7f)
                   0x000003          0x2 SHORT 0x0
 
-.text             0x000200         0xf6
+.text             0x000200         0xf4
  *(.init)
  .init            0x000200         0x4c c:/program files/microchip/xc16/v2.10/bin/bin/../../lib\libc99-pic30-elf.a(crt0_standard.o)
                   0x000200                  __resetPRI
@@ -220,19 +220,19 @@ LOAD c:/program files/microchip/xc16/v2.10/bin/bin/../../lib\libfx-elf.a
  *(.user_init)
  *(.handle)
  *(.isr*)
- .isr.text        0x0002c8         0x28 build/default/production/mainXC16.o
+ .isr.text        0x0002c8         0x26 build/default/production/mainXC16.o
                   0x0002c8                  __T1Interrupt
-                  0x0002de                  __OC2Interrupt
- .isr             0x0002f0          0x4 default_isr
-                  0x0002f0                  __DefaultInterrupt
+                  0x0002dc                  __OC2Interrupt
+ .isr             0x0002ee          0x4 default_isr
+                  0x0002ee                  __DefaultInterrupt
  *(.libc)
  *(.libm)
  *(.libdsp)
  *(.lib*)
  .libpic30_crt_start_mode
-                  0x0002f4          0x2 c:/program files/microchip/xc16/v2.10/bin/bin/../../lib\libc99-pic30-elf.a(crt_start_mode_normal.Meo)
-                  0x0002f4                  __crt_start_mode
-                  0x0002f4                  __crt_start_mode_normal
+                  0x0002f2          0x2 c:/program files/microchip/xc16/v2.10/bin/bin/../../lib\libc99-pic30-elf.a(crt_start_mode_normal.Meo)
+                  0x0002f2                  __crt_start_mode
+                  0x0002f2                  __crt_start_mode_normal
 
 usercode
  *(usercode)
@@ -264,18 +264,18 @@ __FDS
 .comment
  *(.comment)
 
-.debug_info       0x000000       0x130a
+.debug_info       0x000000       0x1329
  *(.debug_info)
- .debug_info      0x000000       0x130a build/default/production/mainXC16.o
+ .debug_info      0x000000       0x1329 build/default/production/mainXC16.o
  *(.gnu.linkonce.wi.*)
 
-.debug_abbrev     0x000000        0x149
+.debug_abbrev     0x000000        0x15c
  *(.debug_abbrev)
- .debug_abbrev    0x000000        0x149 build/default/production/mainXC16.o
+ .debug_abbrev    0x000000        0x15c build/default/production/mainXC16.o
 
-.debug_line       0x000000        0x1b4
+.debug_line       0x000000        0x1ba
  *(.debug_line)
- .debug_line      0x000000        0x1b4 build/default/production/mainXC16.o
+ .debug_line      0x000000        0x1ba build/default/production/mainXC16.o
 
 .debug_frame      0x000000         0xc4
  *(.debug_frame)
@@ -968,12 +968,12 @@ __c30_signature
  .ivt._OC2Interrupt
                   0x000020          0x2 build/default/production/mainXC16.o
 
-.text             0x0002f6        0x224
- .text            0x0002f6        0x224 build/default/production/mainXC16.o
-                  0x0002f6                  _main
-                  0x0004b6                  _sing
-                  0x0004d2                  _drive
-                  0x00050c                  _stop
+.text             0x0002f4        0x22a
+ .text            0x0002f4        0x22a build/default/production/mainXC16.o
+                  0x0002f4                  _main
+                  0x0004ba                  _sing
+                  0x0004d6                  _drive
+                  0x000510                  _stop
 
-.dinit            0x00051a          0x8
- .dinit           0x00051a          0x8 data_init
+.dinit            0x00051e          0x8
+ .dinit           0x00051e          0x8 data_init
