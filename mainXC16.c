@@ -23,7 +23,7 @@ enum {Forward1, Turn90, Forward2, Turn180, Forward3, Finished} milestone5;
 //variable/flag declarations
 unsigned char hasBall = 0;
 unsigned int leftVel = 0; //corresponds to OC2RS, pin 4. Lower is Faster
-unsigned int rightVel = 0; //corresponds to OC1RS, pin 14. Lower is Faster
+unsigned int rightVel = 0; //corresponds to OC3RS, pin 5. Lower is Faster
 unsigned char leftDir = 0; //corresponds to A1, pin 3. 0 is forward
 unsigned char rightDir = 0; //corresponds to B2, pin 6. 0 is forward
 //unsigned char turning = 0;
@@ -61,6 +61,43 @@ void __attribute__((interrupt, no_auto_psv)) _OC2Interrupt(void){
     steps ++;
 }
 
+void config_ADC(void)
+{
+    _ADON = 0;    // Disable A/D module during configuration
+    
+    // AD1CON1
+    _MODE12 = 1;  // 12-bit resolution
+    _FORM = 0;    // unsigned integer output
+    _SSRC = 7;    // auto convert
+    _ASAM = 1;    // auto sample
+
+    // AD1CON2
+    _PVCFG = 0;   // use VDD as positive reference
+    _NVCFG = 0;   // use VSS as negative reference
+    _BUFREGEN = 1;// store results in buffer corresponding to channel number
+    _CSCNA = 1;   // scanning mode
+    _SMPI = 7;    // begin new sampling sequence after every sample
+    _ALTS = 0;    // sample MUXA only
+
+    // AD1CON3
+    _ADRC = 0;    // use system clock
+    _SAMC = 0;    // sample every A/D period
+    _ADCS = 0x3F; // TAD = 64*TCY
+
+    // AD1CSS -- Choose which channel/pin to scan
+    _CSS0 = 1;
+    _CSS1 = 1;
+    _CSS4 = 1;
+    _CSS13 = 1;
+    _CSS14 = 1;
+    _CSS10 = 1;
+    _CSS11 = 1;
+    _CSS12 = 1;
+
+
+    _ADON = 1;    // enable module
+}
+
 
 
 //function declarations
@@ -70,39 +107,60 @@ void stop();
 
 int main(void){
     //setup
+
     _RCDIV = 0; //set postscailer to 1
-    ANSA = 0; //set to digital logic
-    ANSB = 0; //set to digital logic
-    _TRISA1 = 0; //pin 3
-    _TRISB2 = 0; //pin 6
-    OC2CON1 = 0x1C06; //sets clock and edge alignment
-    OC2CON2 = 0x001F; //sets to pwm
+
+    _TRISA0 = 1; //pin 2, photodiode laser
+    _TRISA1 = 1; //pin 3, photodiode ball
+    _TRISB0 = 0; //pin 4, left motor control
+    _TRISB1 = 0; //pin 5, right motor control
+    _TRISB2 = 1; //pin 6, right distance
+    _TRISA2 = 1; //pin 7, front distance
+    _TRISA3 = 1; //pin 8, left distance
+
+    _TRISB7 = 0; //pin 11, laser enable
+    _TRISB8 = 0; //pin 12, right motor direction
+    _TRISB9 = 0; //pin 13, left motor direction
+    _TRISA6 = 0; //pin 14, servos control
+    _TRISB12 = 1; //pin 15, QRD Left
+    _TRISB13 = 1; //pin 16, QRD Ball
+    _TRISB14 = 1; //pin 17, QRD Right
+    _TRISB15 = 1; //pin 18, servo enable
+
     OC1CON1 = 0x1C06; //sets clock and edge alignment
     OC1CON2 = 0x001F; //sets to pwm
-    T1CONbits.TON = 1;
+    OC2CON1 = 0x1C06; //sets clock and edge alignment
+    OC2CON2 = 0x001F; //sets to pwm
+    OC3CON1 = 0x1C06; //sets clock and edge alignment
+    OC3CON2 = 0x001F; //sets to pwm
+
+    config_ADC();
+
+
+    T1CONbits.TON = 1; 
     T1CONbits.TCS = 0;
     T1CONbits.TCKPS = 0b11; //prescaler of 256
     PR1 = 7813; //period of 1 second
+
     _T1IP = 6;
     _T1IF = 0;
-    _T1IE = 1;
+    _T1IE = 0;
     _OC2IP = 4;
     _OC2IF = 0;
-    _OC2IE = 0;
+    _OC2IE = 1;
     OC2RS = 2000;
     OC2R = 100;
-    OC1RS = 2000;
-    OC1R = 100;
+    OC3RS = 2000;
+    OC3R = 100;
     
     //Pin Definitions
     
 
-    state = Milestone5;
-    milestone5 = Forward1;
+    state = Line;
     
     //initial conditions
-    leftVel = 2000;
-    rightVel = 2000;
+    leftVel = 16000;
+    rightVel = 16000;
     leftDir = 0;
     rightDir = 0;
     drive();
@@ -111,24 +169,46 @@ int main(void){
     while (1){
         switch(state){
             case Line:
-                switch(line){
-                    case Left:
-                        leftVel = 2000;
-                        rightVel = 0;
-                        leftDir = 0;
-                        rightDir = 0;
-                        drive();
-                        break;
-                    case Right:
-                        leftVel = 0;
-                        rightVel = 2000;
-                        leftDir = 0;
-                        rightDir = 0;
-                        drive();
-                        break;
-                    default:
-                        line = Right;
+                if(ADC1BUF12 <= 750){
+                    line = Right;
+                    leftVel = 16000;
+                    rightVel = 8000;
+                    leftDir = 1;
+                    rightDir = 0;
+                    drive();
+                }else{
+                    line = Left;
+                    leftVel = 8000;
+                    rightVel = 16000;
+                    leftDir = 0;
+                    rightDir = 1;
+                    drive();
+                    // drive();
                 }
+                
+                // switch(line){
+                //     case Left:
+                //         leftVel = 2000;
+                //         rightVel = 0;
+                //         leftDir = 0;
+                //         rightDir = 0;
+                //         drive();
+                //         break;
+                //     case Right:
+                //         leftVel = 0;
+                //         rightVel = 2000;
+                //         leftDir = 0;
+                //         rightDir = 0;
+                //         drive();
+                //         break;
+                //     default:
+                //         line = Right;
+                // }
+                if(steps >= 8000){
+                    state = Done;
+                    done = Stop;
+                }
+                
                 break;
             case Ball:
                 break;
@@ -251,16 +331,18 @@ void sing(){
 }
 
 void drive(){
-    _LATB2 = leftDir;
-    _LATA1 = rightDir;
-    OC1RS = leftVel;
+    _LATB9 = leftDir;
+    _LATB8 = rightDir;
+    OC3RS = leftVel;
     OC2RS = rightVel;
     OC2R = 50;
-    OC1R = 50;
+    OC3R = 50;
 }
 
 void stop(){
     OC2R = leftVel;
-    OC1R = rightVel;
+    OC3R = rightVel;
+    OC2RS = leftVel;
+    OC3RS = rightVel;
 }
                 
