@@ -65,19 +65,19 @@ Default Scalar Model: Small
 section                    address   length (PC units)   length (bytes) (dec)
 -------                    -------   -----------------   --------------------
 .text                        0x200                0xf4           0x16e  (366)
-.text                        0x2f4               0x22a           0x33f  (831)
-.dinit                       0x51e                 0x8             0xc  (12)
+.text                        0x2f4               0x39c           0x56a  (1386)
+.dinit                       0x690                 0x8             0xc  (12)
 
-                 Total "program" memory used (bytes):          0x4b9  (1209) 7%
+                 Total "program" memory used (bytes):          0x6e4  (1764) 10%
 
 
 "data" Memory  [Origin = 0x800, Length = 0x800]
 
 section                    address      alignment gaps    total length  (dec)
 -------                    -------      --------------    -------------------
-.nbss                        0x800                   0            0x1e  (30)
+.nbss                        0x800                   0            0x20  (32)
 
-                 Total "data" memory used (bytes):           0x1e  (30) 1%
+                 Total "data" memory used (bytes):           0x20  (32) 1%
 
 
 Dynamic Memory Usage
@@ -85,9 +85,9 @@ Dynamic Memory Usage
 region                     address                      maximum length  (dec)
 ------                     -------                      ---------------------
 heap                             0                                   0  (0)
-stack                        0x81e                               0x7e2  (2018)
+stack                        0x820                               0x7e0  (2016)
 
-                 Maximum dynamic memory (bytes):          0x7e2  (2018)
+                 Maximum dynamic memory (bytes):          0x7e0  (2016)
 
 Info: Project is using a large data memory model when small data memory model is sufficient.
 
@@ -96,39 +96,41 @@ External Symbols in Data Memory (by address):
 
                     0x0800                  _state
                     0x0802                  _line
-                    0x0804                  _ball
-                    0x0806                  _ballColor
-                    0x0808                  _canyon
-                    0x080a                  _dock
-                    0x080c                  _laser
-                    0x080e                  _done
-                    0x0810                  _milestone5
-                    0x0812                  _hasBall
-                    0x0814                  _leftVel
-                    0x0816                  _rightVel
-                    0x0818                  _leftDir
-                    0x0819                  _rightDir
-                    0x081a                  _steps
-                    0x081c                  _time
+                    0x0804                  _linepos
+                    0x0806                  _ball
+                    0x0808                  _ballColor
+                    0x080a                  _canyon
+                    0x080c                  _dock
+                    0x080e                  _laser
+                    0x0810                  _done
+                    0x0812                  _milestone5
+                    0x0814                  _hasBall
+                    0x0816                  _leftVel
+                    0x0818                  _rightVel
+                    0x081a                  _leftDir
+                    0x081b                  _rightDir
+                    0x081c                  _steps
+                    0x081e                  _time
 
 External Symbols in Data Memory (by name):
 
-                    0x0804                  _ball
-                    0x0806                  _ballColor
-                    0x0808                  _canyon
-                    0x080a                  _dock
-                    0x080e                  _done
-                    0x0812                  _hasBall
-                    0x080c                  _laser
-                    0x0818                  _leftDir
-                    0x0814                  _leftVel
+                    0x0806                  _ball
+                    0x0808                  _ballColor
+                    0x080a                  _canyon
+                    0x080c                  _dock
+                    0x0810                  _done
+                    0x0814                  _hasBall
+                    0x080e                  _laser
+                    0x081a                  _leftDir
+                    0x0816                  _leftVel
                     0x0802                  _line
-                    0x0810                  _milestone5
-                    0x0819                  _rightDir
-                    0x0816                  _rightVel
+                    0x0804                  _linepos
+                    0x0812                  _milestone5
+                    0x081b                  _rightDir
+                    0x0818                  _rightVel
                     0x0800                  _state
-                    0x081a                  _steps
-                    0x081c                  _time
+                    0x081c                  _steps
+                    0x081e                  _time
 
 External Symbols in Program Memory (by address):
 
@@ -139,10 +141,12 @@ External Symbols in Program Memory (by address):
                   0x0002c8                  __T1Interrupt
                   0x0002dc                  __OC2Interrupt
                   0x0002ee                  __DefaultInterrupt
-                  0x0002f4                  _main
-                  0x0004ba                  _sing
-                  0x0004d6                  _drive
-                  0x000510                  _stop
+                  0x0002f4                  _config_ADC
+                  0x00034e                  _main
+                  0x000610                  _sing
+                  0x00062c                  _drive
+                  0x000666                  _stop
+                  0x00067c                  _wait
 
 External Symbols in Program Memory (by name):
 
@@ -153,10 +157,12 @@ External Symbols in Program Memory (by name):
                   0x000252                  __data_init_standard
                   0x00023c                  __psv_init
                   0x000200                  __resetPRI
-                  0x0004d6                  _drive
-                  0x0002f4                  _main
-                  0x0004ba                  _sing
-                  0x000510                  _stop
+                  0x0002f4                  _config_ADC
+                  0x00062c                  _drive
+                  0x00034e                  _main
+                  0x000610                  _sing
+                  0x000666                  _stop
+                  0x00067c                  _wait
 
 Memory Configuration
 
@@ -264,26 +270,26 @@ __FDS
 .comment
  *(.comment)
 
-.debug_info       0x000000       0x1329
+.debug_info       0x000000       0x1b86
  *(.debug_info)
- .debug_info      0x000000       0x1329 build/default/production/mainXC16.o
+ .debug_info      0x000000       0x1b86 build/default/production/mainXC16.o
  *(.gnu.linkonce.wi.*)
 
-.debug_abbrev     0x000000        0x15c
+.debug_abbrev     0x000000        0x149
  *(.debug_abbrev)
- .debug_abbrev    0x000000        0x15c build/default/production/mainXC16.o
+ .debug_abbrev    0x000000        0x149 build/default/production/mainXC16.o
 
-.debug_line       0x000000        0x1ba
+.debug_line       0x000000        0x223
  *(.debug_line)
- .debug_line      0x000000        0x1ba build/default/production/mainXC16.o
+ .debug_line      0x000000        0x223 build/default/production/mainXC16.o
 
-.debug_frame      0x000000         0xc4
+.debug_frame      0x000000         0xf8
  *(.debug_frame)
- .debug_frame     0x000000         0xc4 build/default/production/mainXC16.o
+ .debug_frame     0x000000         0xf8 build/default/production/mainXC16.o
 
-.debug_str        0x000000         0x7c
+.debug_str        0x000000         0xb7
  *(.debug_str)
- .debug_str       0x000000         0x7c build/default/production/mainXC16.o
+ .debug_str       0x000000         0xb7 build/default/production/mainXC16.o
 
 .debug_loc
  *(.debug_loc)
@@ -292,10 +298,10 @@ __FDS
  *(.debug_macinfo)
 
 .debug_pubnames
-                  0x000000        0x10b
+                  0x000000        0x12f
  *(.debug_pubnames)
  .debug_pubnames
-                  0x000000        0x10b build/default/production/mainXC16.o
+                  0x000000        0x12f build/default/production/mainXC16.o
 
 .debug_ranges
  *(.debug_ranges)
@@ -923,37 +929,38 @@ LOAD default_isr
 LOAD data_init
 
 .debug_pubtypes
-                  0x000018        0x14b
+                  0x000018        0x1ba
  .debug_pubtypes
-                  0x000018        0x14b build/default/production/mainXC16.o
+                  0x000018        0x1ba build/default/production/mainXC16.o
 
 __c30_signature
-                  0x000163         0x12
+                  0x0001d2         0x12
  __c30_signature
-                  0x000163          0x6 build/default/production/mainXC16.o
+                  0x0001d2          0x6 build/default/production/mainXC16.o
  __c30_signature
-                  0x000169          0x6 c:/program files/microchip/xc16/v2.10/bin/bin/../../lib\libc99-pic30-elf.a(crt0_standard.o)
+                  0x0001d8          0x6 c:/program files/microchip/xc16/v2.10/bin/bin/../../lib\libc99-pic30-elf.a(crt0_standard.o)
  __c30_signature
-                  0x00016f          0x6 c:/program files/microchip/xc16/v2.10/bin/bin/../../lib\libc99-pic30-elf.a(data_init_standard.o)
+                  0x0001de          0x6 c:/program files/microchip/xc16/v2.10/bin/bin/../../lib\libc99-pic30-elf.a(data_init_standard.o)
 
-.nbss               0x0800         0x1e
- .nbss              0x0800         0x1e build/default/production/mainXC16.o
+.nbss               0x0800         0x20
+ .nbss              0x0800         0x20 build/default/production/mainXC16.o
                     0x0800                  _state
                     0x0802                  _line
-                    0x0804                  _ball
-                    0x0806                  _ballColor
-                    0x0808                  _canyon
-                    0x080a                  _dock
-                    0x080c                  _laser
-                    0x080e                  _done
-                    0x0810                  _milestone5
-                    0x0812                  _hasBall
-                    0x0814                  _leftVel
-                    0x0816                  _rightVel
-                    0x0818                  _leftDir
-                    0x0819                  _rightDir
-                    0x081a                  _steps
-                    0x081c                  _time
+                    0x0804                  _linepos
+                    0x0806                  _ball
+                    0x0808                  _ballColor
+                    0x080a                  _canyon
+                    0x080c                  _dock
+                    0x080e                  _laser
+                    0x0810                  _done
+                    0x0812                  _milestone5
+                    0x0814                  _hasBall
+                    0x0816                  _leftVel
+                    0x0818                  _rightVel
+                    0x081a                  _leftDir
+                    0x081b                  _rightDir
+                    0x081c                  _steps
+                    0x081e                  _time
 
 .config_IESO      0xf80006          0x2
  .config_IESO     0xf80006          0x2 build/default/production/mainXC16.o
@@ -968,12 +975,14 @@ __c30_signature
  .ivt._OC2Interrupt
                   0x000020          0x2 build/default/production/mainXC16.o
 
-.text             0x0002f4        0x22a
- .text            0x0002f4        0x22a build/default/production/mainXC16.o
-                  0x0002f4                  _main
-                  0x0004ba                  _sing
-                  0x0004d6                  _drive
-                  0x000510                  _stop
+.text             0x0002f4        0x39c
+ .text            0x0002f4        0x39c build/default/production/mainXC16.o
+                  0x0002f4                  _config_ADC
+                  0x00034e                  _main
+                  0x000610                  _sing
+                  0x00062c                  _drive
+                  0x000666                  _stop
+                  0x00067c                  _wait
 
-.dinit            0x00051e          0x8
- .dinit           0x00051e          0x8 data_init
+.dinit            0x000690          0x8
+ .dinit           0x000690          0x8 data_init

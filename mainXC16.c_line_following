@@ -7,11 +7,12 @@
 
 //#include s
 #include "xc.h"
-#pragma config FNOSC = FRCDIV
+#pragma config FNOSC = FRCDIV //sets to 8MHz clock
 
 //State Definitions
 enum {Line, Ball, Dump, Canyon, Dock, Laser, Done, Milestone5} state;
-enum {Left, Right} line;
+enum {Left, Right, SwitchL, SwitchR, StopLine} line;
+enum {LeftL, RightL, Hidden} linepos;
 enum {Retrieve, Return} ball;
 enum {White, Black} ballColor; 
 enum {Left1, Right1, Exit} canyon;
@@ -20,10 +21,11 @@ enum {Sensor, Further} laser;
 enum {Sing, Stop} done;
 enum {Forward1, Turn90, Forward2, Turn180, Forward3, Finished} milestone5;
 
+
 //variable/flag declarations
 unsigned char hasBall = 0;
-unsigned int leftVel = 0; //corresponds to OC2RS, pin 4. Lower is Faster
-unsigned int rightVel = 0; //corresponds to OC3RS, pin 5. Lower is Faster
+unsigned int leftVel = 0; //corresponds to OC2RS, pin 4. Lower is Faster. Min is 65535, max is 1000
+unsigned int rightVel = 0; //corresponds to OC3RS, pin 5. Lower is Faster. Min is 65535, max is 1000
 unsigned char leftDir = 0; //corresponds to A1, pin 3. 0 is forward
 unsigned char rightDir = 0; //corresponds to B2, pin 6. 0 is forward
 //unsigned char turning = 0;
@@ -38,6 +40,8 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void){
     _T1IE = 0;
     _OC2IE = 1;
     time = 1;
+    
+
 //    if (steps >= 425){
 //        if (turning == 1){
 //            if (fullTurn = 1){
@@ -104,11 +108,22 @@ void config_ADC(void)
 void sing();
 void drive();
 void stop();
+void wait();
 
 int main(void){
     //setup
-
-    _RCDIV = 0; //set postscailer to 1
+    // setting default states
+    state = Line;
+    line = StopLine;
+    linepos = Hidden;
+    ball = Retrieve;
+    ballColor = Black;
+    canyon = Left1;
+    dock = Turn;
+    laser = Sensor;
+    done = Stop;
+    milestone5 = Forward1;
+    _RCDIV = 0b0; //set post scaler to 1
 
     _TRISA0 = 1; //pin 2, photodiode laser
     _TRISA1 = 1; //pin 3, photodiode ball
@@ -139,8 +154,8 @@ int main(void){
 
     T1CONbits.TON = 1; 
     T1CONbits.TCS = 0;
-    T1CONbits.TCKPS = 0b11; //prescaler of 256
-    PR1 = 7813; //period of 1 second
+    T1CONbits.TCKPS = 0b10; //prescaler of 64
+    PR1 = 31250; //period of 1 second
 
     _T1IP = 6;
     _T1IF = 0;
@@ -155,8 +170,6 @@ int main(void){
     
     //Pin Definitions
     
-
-    state = Line;
     
     //initial conditions
     leftVel = 16000;
@@ -169,21 +182,81 @@ int main(void){
     while (1){
         switch(state){
             case Line:
+                //detecting the line (or nothing)
                 if(ADC1BUF12 <= 750){
-                    line = Right;
-                    leftVel = 16000;
-                    rightVel = 8000;
-                    leftDir = 1;
-                    rightDir = 0;
-                    drive();
+                    linepos = LeftL;
+                }else if(ADC1BUF12 >= 1000){
+                    linepos = RightL;
                 }else{
-                    line = Left;
-                    leftVel = 8000;
-                    rightVel = 16000;
-                    leftDir = 0;
-                    rightDir = 1;
-                    drive();
-                    // drive();
+                    linepos = Hidden;
+                }
+
+                //setting the motor directions and velocities
+                switch(line){
+                    case Left:
+                        switch (linepos){
+                            case LeftL:
+                                break;
+                            case RightL:
+                                line = SwitchR;
+                                break;
+                            case Hidden:
+                                line = StopLine;
+                                break;
+                            default:
+                                linepos = Hidden;
+                        }
+                        leftVel = 32000;
+                        rightVel = 8000;
+                        leftDir = 0;
+                        rightDir = 0;
+                        drive();
+                        break;
+                    case Right:
+                        switch (linepos){
+                            case LeftL:
+                                line = SwitchL;
+                                break;
+                            case RightL:
+                                break;
+                            case Hidden:
+                                line = StopLine;
+                                break;
+                            default:
+                                linepos = Hidden;
+                        }
+                        leftVel = 8000;
+                        rightVel = 32000;
+                        leftDir = 0;
+                        rightDir = 0;
+                        drive();
+                        break;
+                    case SwitchL:
+                        wait();
+                        line = Left;
+                        break;
+                    case SwitchR:
+                        wait();
+                        line = Right;
+                        break;
+                    case StopLine:
+                        stop();
+                        switch (linepos){
+                            case LeftL:
+                                line = SwitchL;
+                                break;
+                            case RightL:
+                                line = SwitchR;
+                                break;
+                            case Hidden:
+                                break;
+                            default:
+                                linepos = Hidden;
+                        }
+                        break;
+                    default:
+                    line = StopLine;
+
                 }
                 
                 // switch(line){
@@ -345,4 +418,15 @@ void stop(){
     OC2RS = leftVel;
     OC3RS = rightVel;
 }
-                
+
+void wait(){
+    stop();
+    _OC2IE = 0;
+    _T1IF = 0;
+    _T1IE = 1;
+    time = 0;
+    steps = 0;
+    TMR1 = 0;
+    while (0){
+    }
+}
