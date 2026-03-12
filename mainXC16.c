@@ -1,6 +1,6 @@
 /*
  * File:   mainXC16.c
- * Author: WesleyF, 
+ * Authors: WesleyF, bwhit05, cewell7, jdag2002
  *
  * Created on February 20, 2026, 10:01 AM
  */
@@ -10,17 +10,17 @@
 #pragma config FNOSC = FRCDIV //sets to 8MHz clock
 
 //State Definitions
-enum {Line, Ball, Dump, Canyon, Dock, Laser, Done, Milestone5} state;
-enum {Left, Right, SwitchL, SwitchR, StopLine} line;
-enum {LeftL, RightL, Hidden} linepos;
-enum {Retrieve, Return} ball;
-enum {White, Black} ballColor; 
-enum {Left1, Right1, Exit} canyon;
-enum {Turn, Forward} dock;
-enum {Sensor, Further} laser;
-enum {Sing, Stop} done;
-enum {Forward1, Turn90, Forward2, Turn180, Forward3, Finished} milestone5;
-
+enum state {Testing, Line, Ball, Dump, Canyon, Dock, Laser, Done, Milestone5} state;
+enum line {Left, Right, SwitchL, SwitchR, StopLine} line;
+enum linepos {LeftL, RightL, Hidden} linepos;
+enum linevel {Ballanced, Turning} linevel;
+enum ball {Retrieve, Return} ball;
+enum ballColor {White, Black} ballColor; 
+enum canyon {Front, Left1, Right1, Exit} canyon;
+enum dock {Turn, Forward} dock;
+enum laser {Sensor, Further} laser;
+enum done {Sing, Stop} done;
+enum milestone5 {Forward1, Turn90, Forward2, Turn180, Forward3, Finished} milestone5;
 
 //variable/flag declarations
 unsigned char hasBall = 0;
@@ -29,24 +29,30 @@ unsigned int rightVel = 0; //corresponds to OC3RS, pin 5. Lower is Faster. Min i
 unsigned char leftDir = 0; //corresponds to A1, pin 3. 0 is forward
 unsigned char rightDir = 0; //corresponds to B2, pin 6. 0 is forward
 //unsigned char turning = 0;
-unsigned int steps = 0;
+unsigned int stepsL = 0; //steps by the left motor driver
+unsigned int stepsR = 0; //steps by the right motor driver
 //unsigned char fullTurn = 0;
-unsigned int time = 0;
-
+unsigned int time = 0; //clock cycles
 
 //Interrupt functions
 void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void){
     _T1IF = 0;
-    _T1IE = 0;
-    _OC2IE = 1;
-    time = 1;
+    time += 1;
 }
 
+//Left motor interrupt
 void __attribute__((interrupt, no_auto_psv)) _OC2Interrupt(void){
     _OC2IF = 0;
-    steps ++;
+    stepsL ++;
 }
 
+//Right motor interrupt
+void __attribute__((interrupt, no_auto_psv)) _OC3Interrupt(void){
+    _OC3IF = 0;
+    stepsR ++;
+}
+
+// Configure ADC
 void config_ADC(void)
 {
     _ADON = 0;    // Disable A/D module during configuration
@@ -84,20 +90,28 @@ void config_ADC(void)
     _ADON = 1;    // enable module
 }
 
-
-
 //function declarations
 void sing();
 void drive();
 void stop();
-void wait();
+void wait(int ticks);
+void readline();
+void turn90r();
+void turn90l();
+void turn180();
+void calLine();
+void left();
+void right();
 
 int main(void){
     //setup
-    // setting default states
+    _RCDIV = 0b0; //set post scaler to 1
+
+    {// setting default states
     state = Line;
     line = StopLine;
     linepos = Hidden;
+    linevel = Ballanced;
     ball = Retrieve;
     ballColor = Black;
     canyon = Left1;
@@ -105,8 +119,9 @@ int main(void){
     laser = Sensor;
     done = Stop;
     milestone5 = Forward1;
-    _RCDIV = 0b0; //set post scaler to 1
-
+    }
+    
+    {//pin declerations
     _TRISA0 = 1; //pin 2, photodiode laser
     _TRISA1 = 1; //pin 3, photodiode ball
     _TRISB0 = 0; //pin 4, left motor control
@@ -114,7 +129,8 @@ int main(void){
     _TRISB2 = 1; //pin 6, right distance
     _TRISA2 = 1; //pin 7, front distance
     _TRISA3 = 1; //pin 8, left distance
-
+    //pin 9 is for programming 
+    //pin 10 is for programming
     _TRISB7 = 0; //pin 11, laser enable
     _TRISB8 = 0; //pin 12, right motor direction
     _TRISB9 = 0; //pin 13, left motor direction
@@ -123,172 +139,200 @@ int main(void){
     _TRISB13 = 1; //pin 16, QRD Ball
     _TRISB14 = 1; //pin 17, QRD Right
     _TRISB15 = 1; //pin 18, servo enable
+    //pin 19 is ground
+    //pin 20 is V+
+    }
 
+    {//PWM setup
+    //pin 14, servos
     OC1CON1 = 0x1C06; //sets clock and edge alignment
     OC1CON2 = 0x001F; //sets to pwm
+    //pin 4, left motor
     OC2CON1 = 0x1C06; //sets clock and edge alignment
     OC2CON2 = 0x001F; //sets to pwm
+    //pin 5, right motor
     OC3CON1 = 0x1C06; //sets clock and edge alignment
     OC3CON2 = 0x001F; //sets to pwm
+    }
 
+    //set up analog input pins
     config_ADC();
 
-
-    T1CONbits.TON = 1; 
-    T1CONbits.TCS = 0;
+    {//timer 1 setup
+    T1CONbits.TON = 1; //Timer 1 on
+    T1CONbits.TCS = 0; //internal clock
     T1CONbits.TCKPS = 0b10; //prescaler of 64
-    PR1 = 31250; //period of 1 second
+    PR1 = 3125; //period of 0.05 seconds
+    }
 
-    _T1IP = 6;
-    _T1IF = 0;
-    _T1IE = 0;
-    _OC2IP = 4;
-    _OC2IF = 0;
-    _OC2IE = 1;
-    OC2RS = 2000;
-    OC2R = 100;
-    OC3RS = 2000;
-    OC3R = 100;
+    {//interrupts setup
+    _T1IP = 6; //timer 1 priority
+    _T1IF = 0; //timer 1 flag
+    _T1IE = 0; //timer 1 interupt enable (disabled)
+    _OC2IP = 4; //OC2 priority
+    _OC2IF = 0; //OC2 flag
+    _OC2IE = 1; //OC2 interupt enable (enabled)
+    _OC3IP = 4; //OC2 priority
+    _OC3IF = 0; //OC2 flag
+    _OC3IE = 0; //OC2 interupt enable (enabled)
+    }
     
-    //Pin Definitions
-    
-    
-    //initial conditions
+    {//initial conditions
     leftVel = 16000;
     rightVel = 16000;
     leftDir = 0;
     rightDir = 0;
-    drive();
+    stop();
+    }
 
-    //main loop
-    while (1){
+    while (1){//main loop
         switch(state){
-            case Line:
+            case Testing:{
+                calLine();
+                break;
+            }
+            case Line:{
                 //detecting the line (or nothing)
-                if(ADC1BUF12 <= 750){
-                    linepos = LeftL;
-                }else if(ADC1BUF12 >= 1000){
-                    linepos = RightL;
-                }else{
-                    linepos = Hidden;
-                }
+                readline();
 
                 //setting the motor directions and velocities
                 switch(line){
-                    case Left:
+                    case Left:{
+                        left();
+                        break;
+                    }
+                    case Right:{
+                        right();
+                        break;
+                    }
+                    case SwitchL:{
                         switch (linepos){
-                            case LeftL:
+                            case LeftL:{
+                                line = Left;
                                 break;
-                            case RightL:
+                            }
+                            case RightL:{
                                 line = SwitchR;
                                 break;
-                            case Hidden:
+                            }
+                            case Hidden:{
                                 line = StopLine;
                                 break;
-                            default:
+                            }
+                            default:{
                                 linepos = Hidden;
+                            }
                         }
-                        leftVel = 32000;
-                        rightVel = 8000;
-                        leftDir = 0;
-                        rightDir = 0;
-                        drive();
                         break;
-                    case Right:
+                    }
+                    case SwitchR:{
                         switch (linepos){
-                            case LeftL:
-                                line = SwitchL;
+                            case LeftL:{
+                                line = SwitchR;
                                 break;
-                            case RightL:
+                            }
+                            case RightL:{
+                                line = Right;
                                 break;
-                            case Hidden:
+                            }
+                            case Hidden:{
                                 line = StopLine;
                                 break;
-                            default:
+                            }
+                            default:{
                                 linepos = Hidden;
+                            }
                         }
-                        leftVel = 8000;
-                        rightVel = 32000;
-                        leftDir = 0;
-                        rightDir = 0;
-                        drive();
                         break;
-                    case SwitchL:
-                        wait();
-                        line = Left;
-                        break;
-                    case SwitchR:
-                        wait();
-                        line = Right;
-                        break;
-                    case StopLine:
+                    }
+                    case StopLine:{
                         stop();
                         switch (linepos){
-                            case LeftL:
+                            case LeftL:{
                                 line = SwitchL;
                                 break;
-                            case RightL:
+                            }
+                            case RightL:{
                                 line = SwitchR;
                                 break;
-                            case Hidden:
+                            }
+                            case Hidden:{
                                 break;
-                            default:
+                            }
+                            default:{
                                 linepos = Hidden;
+                            }
                         }
                         break;
-                    default:
-                    line = StopLine;
-
+                    }
+                    default:{
+                        line = StopLine;
+                    }
                 }
                 
-                if(steps >= 8000){
+                if(stepsL >= 16000){
                     state = Done;
                     done = Stop;
                 }
                 
                 break;
-            case Ball:
+            }
+            case Ball:{
                 break;
-            case Dump:
+            }
+            case Dump:{
                 break;
-            case Canyon:
+            }
+            case Canyon:{
                 break;
-            case Dock:
+            }
+            case Dock:{
                 break;
-            case Laser:
+            }
+            case Laser:{
                 break;
-            case Done:
+            }
+            case Done:{
                 switch(done){
-                    case Sing:
+                    case Sing:{
+                        _OC2IE = 0;
+                        _T1IE = 0;
                         sing();
                         break;
-                    case Stop:
+                    }
+                    case Stop:{
+                        _OC2IE = 0;
+                        _T1IE = 0;
                         stop();
-                        break;
-                    default:
-                        done = Sing;
-                }
-                break;
-            case Milestone5:
-                switch(milestone5){
-                    case(Forward1):
-                        if(time == 1){
-                            time = 0;
-                            steps = 0;
-                            TMR1 = 0;
-                            milestone5 = Turn90;
-                            leftVel = 0;
-                            rightVel = 2000;
-                            leftDir = 0;
-                            rightDir = 0;
-                            drive();
+                        while(1){
                         }
                         break;
-                    case(Turn90):
-                        if(steps >= 550){
+                    }
+                    default:{
+                        done = Sing;
+                    }
+                }
+                break;
+            }
+            case Milestone5:{
+                switch(milestone5){
+                    case(Forward1):{
+                        if(time >= 1){
+                            time = 0;
+                            stepsL = 0;
+                            TMR1 = 0;
+                            _OC2IE = 1;
+                            _T1IE = 0;
+                            milestone5 = Turn90;
+                            turn90l();
+                        }
+                        break;
+                    }
+                    case(Turn90):{
+                        if(stepsL >= 550){
                             milestone5 = Forward2;
                             time = 0;
-                            steps = 0;
+                            stepsL = 0;
                             TMR1 = 0;
                             _OC2IE = 0;
                             _T1IE = 1;
@@ -299,11 +343,14 @@ int main(void){
                             drive();
                         }
                         break;
-                    case(Forward2):
+                    }
+                    case(Forward2):{
                         if(time>=1){
                             time = 0;
-                            steps = 0;
+                            stepsL = 0;
                             TMR1 = 0;
+                            _OC2IE = 1;
+                            _T1IE = 0;
                             milestone5 = Turn180;
                             leftVel = 0;
                             rightVel = 2000;
@@ -312,10 +359,11 @@ int main(void){
                             drive();
                         }
                         break;
-                    case(Turn180):
-                        if(steps>=1100){
+                    }
+                    case(Turn180):{
+                        if(stepsL >= 1100){
                             time = 0;
-                            steps = 0;
+                            stepsL = 0;
                             TMR1 = 0;
                             _OC2IE = 0;
                             _T1IF = 0;
@@ -328,31 +376,35 @@ int main(void){
                             drive();
                         }
                         break;
-                    case(Forward3):
-                        if(time==1){
+                    }
+                    case(Forward3):{
+                        if(time>=1){
                             milestone5 = Finished;
                             time = 0;
-                            steps = 0;
+                            stepsL = 0;
                             leftVel = 0;
                             rightVel = 0;
                             leftDir = 0;
                             rightDir = 0;
-                            time = 0;
-                            steps = 0;
                             _T1IE = 0;
                             _OC2IE = 0;
                             stop();
                         }
                         break;
-                    case(Finished):
+                    }
+                    case(Finished):{
                         stop();
                         break;
-                    default:
+                    }
+                    default:{
                         milestone5 = Turn90;
+                    }
                 }
                 break;
-            default:
-                state = Line;  
+            }
+            default:{
+                state = Line;
+            }
         }
     }
     return 0;
@@ -383,14 +435,228 @@ void stop(){
     OC3RS = rightVel;
 }
 
-void wait(){
+void wait(int ticks){
     stop();
     _OC2IE = 0;
     _T1IF = 0;
-    _T1IE = 1;
     time = 0;
-    steps = 0;
+    _T1IE = 1;
     TMR1 = 0;
-    while (0){
+    while (time < ticks){
     }
+}
+
+void readline(){
+    if(ADC1BUF12 <= 2000){
+        linepos = LeftL;
+    }else if(ADC1BUF12 >= 4000){
+        linepos = Hidden;
+    }else{
+        linepos = RightL;
+    }
+}
+
+void turn90r(){
+    stop();
+    _T1IE = 0;
+    _OC2IF = 0;
+    _OC2IE = 1;
+    leftVel = 6000;
+    rightVel = 6000;
+    leftDir = 0;
+    rightDir = 1;
+    stepsL = 0;
+    drive();
+    while(stepsL < 259){}
+    stop();
+}
+
+void turn90l(){
+    stop();
+    _T1IE = 0;
+    _OC2IF = 0;
+    _OC2IE = 1;
+    leftVel = 6000;
+    rightVel = 6000;
+    leftDir = 1;
+    rightDir = 0;
+    stepsL = 0;
+    drive();
+    while(stepsL < 259){
+    }
+    stop();
+}
+
+void turn180(){
+    stop();
+    _T1IE = 0;
+    _OC2IF = 0;
+    _OC2IE = 1;
+    leftVel = 6000;
+    rightVel = 6000;
+    leftDir = 1;
+    rightDir = 0;
+    stepsL = 0;
+    drive();
+    while(stepsL < 514){
+    }
+    stop();
+}
+
+void calLine(){
+    while(1){
+        if(ADC1BUF12 <= 500){
+            leftVel = 60000;
+            rightVel = 60000;
+            leftDir = 0;
+            rightDir = 0;
+            drive();
+        }else if(ADC1BUF12 <= 1000){
+            leftVel = 60000;
+            rightVel = 60000;
+            leftDir = 1;
+            rightDir = 0;
+            drive();
+        }else if(ADC1BUF12 <= 1500){
+            leftVel = 60000;
+            rightVel = 60000;
+            leftDir = 0;
+            rightDir = 1;
+            drive();
+        }else if(ADC1BUF12 <= 2000){
+            leftVel = 60000;
+            rightVel = 60000;
+            leftDir = 1;
+            rightDir = 1;
+            drive();
+        }else if(ADC1BUF12 <= 2500){
+            leftVel = 30000;
+            rightVel = 60000;
+            leftDir = 0;
+            rightDir = 0;
+            drive();
+        }else if(ADC1BUF12 <= 3000){
+            leftVel = 30000;
+            rightVel = 60000;
+            leftDir = 1;
+            rightDir = 0;
+            drive();
+        }else if(ADC1BUF12 <= 3500){
+            leftVel = 30000;
+            rightVel = 60000;
+            leftDir = 0;
+            rightDir = 1;
+            drive();
+        }else if(ADC1BUF12 <= 4000){
+            leftVel = 30000;
+            rightVel = 60000;
+            leftDir = 1;
+            rightDir = 1;
+            drive();
+        }else if(ADC1BUF12 <= 4500){
+            leftVel = 60000;
+            rightVel = 30000;
+            leftDir = 0;
+            rightDir = 0;
+            drive();
+        }else if(ADC1BUF12 <= 5000){
+            leftVel = 60000;
+            rightVel = 30000;
+            leftDir = 1;
+            rightDir = 0;
+            drive();
+        }else if(ADC1BUF12 <= 5500){
+            leftVel = 60000;
+            rightVel = 30000;
+            leftDir = 0;
+            rightDir = 1;
+            drive();
+        }else if(ADC1BUF12 <= 6000){
+            leftVel = 60000;
+            rightVel = 30000;
+            leftDir = 1;
+            rightDir = 1;
+            drive();
+        }else{
+            stop();
+        }
+    }
+}
+
+void left(){
+    switch (linepos){
+        case LeftL:{
+            break;
+        }
+        case RightL:{
+            line = SwitchR;
+            break;
+        }
+        case Hidden:{
+            line = StopLine;
+            break;
+        }
+        default:{
+            linepos = Hidden;
+        }
+    }
+    switch (linevel){
+        case Ballanced:{
+            leftVel = 16000;
+            rightVel = 4000;
+            leftDir = 0;
+            rightDir = 0;
+            break;
+        }
+        case Turning:{
+            leftVel = 4000;
+            rightVel = 8000;
+            leftDir = 1;
+            rightDir = 0;
+            break;
+        }
+        default:{
+            linevel = Ballanced;
+        }
+    }
+    drive();
+}
+
+void right(){
+    switch (linepos){
+        case LeftL:{
+            line = SwitchL;
+            break;
+        }
+        case RightL:{
+            break;
+        }
+        case Hidden:{
+            line = StopLine;
+            break;
+        }
+        default:{
+            linepos = Hidden;
+        }
+    }
+    switch (linevel){
+        case Ballanced:{
+            leftVel = 4000;
+            rightVel = 16000;
+            leftDir = 0;
+            rightDir = 0;
+            break;
+        }
+        case Turning:{
+            leftVel = 4000;
+            rightVel = 16000;
+            leftDir = 0;
+            rightDir = 0;
+            break;
+        }
+        default:{
+            linevel = Ballanced;
+        }
+    }
+    drive();
 }

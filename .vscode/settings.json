@@ -4,5 +4,6 @@
         "embedded-debug",
         "gdb",
         "mplab-core-da"
-    ]
+    ],
+    "C_Cpp.errorSquiggles": "disabled"
 }
