@@ -8,6 +8,7 @@
 //#include s
 #include "xc.h"
 #pragma config FNOSC = FRCDIV //sets to 8MHz clock
+#pragma config OSCIOFNC = OFF //disables clock output on pin 8
 
 //State Definitions
 enum state {Testing, Line, Ball, Dump, Canyon, Dock, Laser, Done, Milestone5} state;
@@ -16,8 +17,8 @@ enum linePos {LeftL, RightL, Hidden} linePos;
 enum lineVel {Ballanced, Turning} lineVel;
 enum ball {Retrieve, Return} ball;
 enum ballColor {White, Black} ballColor; 
-enum canyon {Front, Left1, Right1, Exit} canyon;
-enum canyonPos {For, Lef, Rig, Exit} canyonPos;
+enum canyon {Front, Front0, Exit} canyon;
+enum canyonPos {For, Lef, Rig, Exi} canyonPos;
 enum dock {Turn, Forward} dock;
 enum laser {Sensor, Further} laser;
 enum done {Sing, Stop} done;
@@ -34,7 +35,7 @@ unsigned int stepsL = 0; //steps by the left motor driver
 unsigned int stepsR = 0; //steps by the right motor driver
 //unsigned char fullTurn = 0;
 unsigned int time = 0; //clock cycles
-
+char canyon_done = 0;
 //Interrupt functions
 void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void){
     _T1IF = 0;
@@ -99,9 +100,10 @@ void wait(int ticks);
 void readline();
 void turn90r();
 void turn90l();
+void turn45r();
+void turn45l();
 void turn180();
-void forward();
-void calLine();
+void forward(int steps);
 void left();
 void right();
 void detectWalls();
@@ -111,13 +113,13 @@ int main(void){
     _RCDIV = 0b0; //set post scaler to 1
 
     {// setting default states
-    state = Line;
+    state = Canyon;
     line = StopLine;
     linePos = Hidden;
     lineVel = Ballanced;
     ball = Retrieve;
     ballColor = Black;
-    canyon = Left1;
+    canyon = Front0;
     dock = Turn;
     laser = Sensor;
     done = Stop;
@@ -161,23 +163,28 @@ int main(void){
     //set up analog input pins
     config_ADC();
 
-    {//timer 1 setup
+    {//timers setup
     T1CONbits.TON = 1; //Timer 1 on
     T1CONbits.TCS = 0; //internal clock
-    T1CONbits.TCKPS = 0b10; //prescaler of 64
-    PR1 = 3125; //period of 0.05 seconds
+    T1CONbits.TCKPS = 0b10; //prescaler of 1
+    PR1 = 3124; //period of 0.05 seconds
+
+    T2CONbits.TON = 1; //Timer 2 on
+    T2CONbits.TCS = 0; //internal clock
+    T2CONbits.TCKPS = 0b10; //prescaler of 64
+    PR2 = 3124; //period of 0.05 seconds
     }
 
     {//interrupts setup
     _T1IP = 6; //timer 1 priority
     _T1IF = 0; //timer 1 flag
-    _T1IE = 0; //timer 1 interupt enable (disabled)
+    _T1IE = 0; //timer 1 interrupt enable (disabled)
     _OC2IP = 4; //OC2 priority
     _OC2IF = 0; //OC2 flag
-    _OC2IE = 1; //OC2 interupt enable (enabled)
+    _OC2IE = 1; //OC2 interrupt enable (enabled)
     _OC3IP = 4; //OC2 priority
     _OC3IF = 0; //OC2 flag
-    _OC3IE = 0; //OC2 interupt enable (enabled)
+    _OC3IE = 0; //OC2 interrupt enable (enabled)
     }
     
     {//initial conditions
@@ -186,18 +193,29 @@ int main(void){
     leftDir = 0;
     rightDir = 0;
     stop();
+    wait(20);//get rid of
     }
 
     while (1){//main loop
         switch(state){
             case Testing:{
-                calLine();
+                wait(60);
+                turn180();
+                wait(60);
+                turn90l();
+                wait(60);
+                turn90r();
+                wait(60);
+                turn180();
+                wait(60);
+                forward(900);
+                while(1){}
                 break;
             }
             case Line:{
                 //detecting the line (or nothing)
                 readline();
-
+             
                 //setting the motor directions and velocities
                 switch(line){
                     case Left:{
@@ -209,6 +227,7 @@ int main(void){
                         break;
                     }
                     case SwitchL:{
+                        stop();
                         switch (linePos){
                             case LeftL:{
                                 line = Left;
@@ -229,6 +248,7 @@ int main(void){
                         break;
                     }
                     case SwitchR:{
+                        stop();
                         switch (linePos){
                             case LeftL:{
                                 line = SwitchR;
@@ -273,16 +293,15 @@ int main(void){
                     }
                 }
                 
-                if(stepsL >= 16000){
-                    state = Done;
-                    done = Stop;
-                }
+                // if(stepsL >= 7000){//Turning in to base
+                //     lineVel = Turning;
+                // }
 
-                if(ADC1BUF4 <= 4000 && ADC1BUF14 <= 4000 && ADC1BUF12 > 750){ // right sees wall, left sees wall, QRD sees no line
-                    //note: add detection for ball return, ball collection
-                    state = canyon;
-                    canyon = Front;
-                }
+                 if(ADC1BUF4 <= 1300 && ADC1BUF14 <= 1300 && ADC1BUF12 > 2000 && canyon_done == 0){ // right sees wall, left sees wall, QRD sees no line
+                     //note: add detection for ball return, ball collection
+                     state = Canyon;
+                     forward(100);
+                 }
                 
                 break;
             }
@@ -293,117 +312,57 @@ int main(void){
                 break;
             }
             case Canyon:{
-                detectWalls();
                 switch(canyon){
                     case Front:{
-                        switch(canyonPos){
-                            case For:{
-                                forward();
-                                break;
-                            }
-                            case Lef:{
-                                canyon = Left1;
-                                break;
-                            }
-                            case Rig:{
-                                canyon = Right1;
-                                break;
-                            }
-                            case Exit:{
-                                canyon = Exit;
-                                break;
-                            }
-                            default:{
-                                canyonPos = For;
-                            }
+                        wait(20);
+                        if(ADC1BUF13 >= 900){
+                            canyon = Front0;
+                            rightDir = 0;
+                            leftDir = 0;
+                        }else if(ADC1BUF4 <= 1500){
+                            turn90l();
+                        }else{
+                            turn90r();
+                        }
+                        if(ADC1BUF12 <= 1000){
+                            canyon = Exit;
                         }
                         break;
                     }
-                    case Left1:{
-                        switch(canyonPos){
-                            case For:{
-                                canyon = Front;
-                                break;
-                            }
-                            case Lef:{
-                                turn90l();
-                                break;
-                            }
-                            case Rig:{
-                                canyon = Right1;
-                                break;
-                            }
-                            case Exit:{
-                                canyon = Exit;
-                                break;
-                            }
-                            default:{
-                                canyonPos = For;
-                            }
+                    case Front0:{
+                        leftVel = 8000;
+                        rightVel = 8000;
+                        if(ADC1BUF13 <= 900){
+                            canyon = Front;
+                            stop();
+                        }else if(ADC1BUF12 <= 1000){
+                            canyon = Exit;
                         }
-                        break;
-                    }
-                    case Right1:{
-                        switch(canyonPos){
-                            case For:{
-                                canyon = Front;
-                                break;
-                            }
-                            case Lef:{
-                                canyon = Left1;
-                                break;
-                            }
-                            case Rig:{
-                                turn90r();
-                                break;
-                            }
-                            case Exit:{
-                                canyon = Exit;
-                                break;
-                            }
-                            default:{
-                                canyonPos = For;
-                            }
+                        else{
+                            drive();
                         }
                         break;
                     }
                     case Exit:{
-                        switch(canyonPos){
-                            case For:{
-                                canyon = Front;
-                                break;
-                            }
-                            case Lef:{
-                                canyon = Left1;
-                                break;
-                            }
-                            case Rig:{
-                                canyon = Right1;
-                                break;
-                            }
-                            case Exit:{
-                                if(ADC1BUF4 <= 4000){
-                                    turn90r();
-                                    state = line;
-                                    line = Left;
-                                    lineVel = Turning;
-                                }else if(ADC1BUF14 <= 4000){
-                                    turn90l();
-                                    state = line;
-                                    line = Right;
-                                    lineVel = Turning;
-                                }else{
-                                    turn180();
-                                }
-                                break;
-                            }
-                            default:{
-                                canyonPos = For;
-                            }
+                        wait(20);
+                        if(ADC1BUF14 <= 1400){
+                            forward(100);
+                            turn90r();
+                            wait(40);
+                        }else{
+                            forward(100);
+                            turn90l();
+                            wait(40);
+                        }
+                        canyon_done = 0;
+                        state = Line;
+                        line = Left;
+                        lineVel = Ballanced;
+                        stepsL = 0;
                         break;
                     }
                     default:{
-                        canyon = Front;
+                        canyon = Front0;
                     }
                 }
                 break;
@@ -426,8 +385,7 @@ int main(void){
                         _OC2IE = 0;
                         _T1IE = 0;
                         stop();
-                        while(1){
-                        }
+                        while(1){}
                         break;
                     }
                     default:{
@@ -442,7 +400,7 @@ int main(void){
                         if(time >= 1){
                             time = 0;
                             stepsL = 0;
-                            TMR1 = 0;
+                            TMR2 = 0;
                             _OC2IE = 1;
                             _T1IE = 0;
                             milestone5 = Turn90;
@@ -455,7 +413,7 @@ int main(void){
                             milestone5 = Forward2;
                             time = 0;
                             stepsL = 0;
-                            TMR1 = 0;
+                            TMR2 = 0;
                             _OC2IE = 0;
                             _T1IE = 1;
                             leftVel = 2000;
@@ -470,7 +428,7 @@ int main(void){
                         if(time>=1){
                             time = 0;
                             stepsL = 0;
-                            TMR1 = 0;
+                            TMR2 = 0;
                             _OC2IE = 1;
                             _T1IE = 0;
                             milestone5 = Turn180;
@@ -486,7 +444,7 @@ int main(void){
                         if(stepsL >= 1100){
                             time = 0;
                             stepsL = 0;
-                            TMR1 = 0;
+                            TMR2 = 0;
                             _OC2IE = 0;
                             _T1IF = 0;
                             _T1IE = 1;
@@ -542,19 +500,40 @@ void sing(){
 }
 
 void drive(){
+    //set directions
     _LATB9 = leftDir;
     _LATB8 = rightDir;
-    OC3RS = leftVel;
-    OC2RS = rightVel;
+
+    //set OCxR
     OC2R = 50;
     OC3R = 50;
+
+    //set PWM
+    while(OC2RS != leftVel || OC3RS != rightVel){
+        if(OC2RS < leftVel){
+            OC2RS += 1000;
+        } else if(OC2RS > leftVel){
+            OC2RS -= 1000;
+        }
+        if(OC3RS < rightVel){
+            OC3RS += 1000;
+        } else if (OC3RS > rightVel){
+            OC3RS -= 1000;
+        }
+        if(OC2RS - leftVel < 1000){
+            OC2RS = leftVel;
+        }
+        if(OC3RS - rightVel < 1000){
+            OC3RS = rightVel;
+        }
+    }
 }
 
 void stop(){
-    OC2R = leftVel;
-    OC3R = rightVel;
-    OC2RS = leftVel;
-    OC3RS = rightVel;
+    OC2R = 65500;
+    OC3R = 65500;
+    OC2RS = 65500;
+    OC3RS = 65500;
 }
 
 void wait(int ticks){
@@ -563,7 +542,7 @@ void wait(int ticks){
     _T1IF = 0;
     time = 0;
     _T1IE = 1;
-    TMR1 = 0;
+    TMR2 = 0;
     while (time < ticks){
     }
 }
@@ -589,7 +568,7 @@ void turn90r(){
     rightDir = 1;
     stepsL = 0;
     drive();
-    while(stepsL < 259){}
+    while(stepsL < 282){}
     stop();
 }
 
@@ -604,7 +583,37 @@ void turn90l(){
     rightDir = 0;
     stepsL = 0;
     drive();
-    while(stepsL < 259){}
+    while(stepsL < 282){} //should be 259... testing 300
+    stop();
+}
+
+void turn45r(){
+    stop();
+    _T1IE = 0;
+    _OC2IF = 0;
+    _OC2IE = 1;
+    leftVel = 6000;
+    rightVel = 6000;
+    leftDir = 0;
+    rightDir = 1;
+    stepsL = 0;
+    drive();
+    while(stepsL < 131){}
+    stop();
+}
+
+void turn45l(){
+    stop();
+    _T1IE = 0;
+    _OC2IF = 0;
+    _OC2IE = 1;
+    leftVel = 6000;
+    rightVel = 6000;
+    leftDir = 1;
+    rightDir = 0;
+    stepsL = 0;
+    drive();
+    while(stepsL < 131){}
     stop();
 }
 
@@ -619,204 +628,115 @@ void turn180(){
     rightDir = 0;
     stepsL = 0;
     drive();
-    while(stepsL < 514){}
+    while(stepsL < 535){}
     stop();
 }
 
-void forward(){
+void forward(int steps){
     stop();
     _T1IE = 0;
     _OC2IF = 0;
     _OC2IE = 1;
-    leftVel = 6000;
-    rightVel = 6000;
+    leftVel = 4000;
+    rightVel = 4000;
     leftDir = 0;
     rightDir = 0;
     stepsL = 0;
     drive();
-    while(stepsL < 800){}
+    while(stepsL < steps){}
     stop();
-}
-
-void calLine(){
-    while(1){
-        if(ADC1BUF12 <= 500){
-            leftVel = 60000;
-            rightVel = 60000;
-            leftDir = 0;
-            rightDir = 0;
-            drive();
-        }else if(ADC1BUF12 <= 1000){
-            leftVel = 60000;
-            rightVel = 60000;
-            leftDir = 1;
-            rightDir = 0;
-            drive();
-        }else if(ADC1BUF12 <= 1500){
-            leftVel = 60000;
-            rightVel = 60000;
-            leftDir = 0;
-            rightDir = 1;
-            drive();
-        }else if(ADC1BUF12 <= 2000){
-            leftVel = 60000;
-            rightVel = 60000;
-            leftDir = 1;
-            rightDir = 1;
-            drive();
-        }else if(ADC1BUF12 <= 2500){
-            leftVel = 30000;
-            rightVel = 60000;
-            leftDir = 0;
-            rightDir = 0;
-            drive();
-        }else if(ADC1BUF12 <= 3000){
-            leftVel = 30000;
-            rightVel = 60000;
-            leftDir = 1;
-            rightDir = 0;
-            drive();
-        }else if(ADC1BUF12 <= 3500){
-            leftVel = 30000;
-            rightVel = 60000;
-            leftDir = 0;
-            rightDir = 1;
-            drive();
-        }else if(ADC1BUF12 <= 4000){
-            leftVel = 30000;
-            rightVel = 60000;
-            leftDir = 1;
-            rightDir = 1;
-            drive();
-        }else if(ADC1BUF12 <= 4500){
-            leftVel = 60000;
-            rightVel = 30000;
-            leftDir = 0;
-            rightDir = 0;
-            drive();
-        }else if(ADC1BUF12 <= 5000){
-            leftVel = 60000;
-            rightVel = 30000;
-            leftDir = 1;
-            rightDir = 0;
-            drive();
-        }else if(ADC1BUF12 <= 5500){
-            leftVel = 60000;
-            rightVel = 30000;
-            leftDir = 0;
-            rightDir = 1;
-            drive();
-        }else if(ADC1BUF12 <= 6000){
-            leftVel = 60000;
-            rightVel = 30000;
-            leftDir = 1;
-            rightDir = 1;
-            drive();
-        }else{
-            stop();
-        }
-    }
 }
 
 void left(){
     switch (linePos){
         case LeftL:{
+            switch (lineVel){
+                case Ballanced:{
+                    leftVel = 12000;
+                    rightVel = 4000;
+                    leftDir = 0;
+                    rightDir = 0;
+                    break;
+                }
+                case Turning:{
+                    leftVel = 8000;
+                    rightVel = 16000;
+                    leftDir = 1;
+                    rightDir = 0;
+                    break;
+                }
+                default:{
+                    lineVel = Ballanced;
+                }
+            }
+            drive();
             break;
         }
         case RightL:{
             line = SwitchR;
+            stop();
             break;
         }
         case Hidden:{
             line = StopLine;
+            stop();
             break;
         }
         default:{
             linePos = Hidden;
         }
     }
-    switch (lineVel){
-        case Ballanced:{
-            leftVel = 16000;
-            rightVel = 4000;
-            leftDir = 0;
-            rightDir = 0;
-            break;
-        }
-        case Turning:{
-            leftVel = 4000;
-            rightVel = 8000;
-            leftDir = 1;
-            rightDir = 0;
-            break;
-        }
-        default:{
-            lineVel = Ballanced;
-        }
-    }
-    drive();
 }
 
 void right(){
     switch (linePos){
         case LeftL:{
             line = SwitchL;
+            stop();
             break;
         }
         case RightL:{
+            switch (lineVel){
+                case Ballanced:{
+                    leftVel = 4000;
+                    rightVel = 12000;
+                    leftDir = 0;
+                    rightDir = 0;
+                    break;
+                }
+                case Turning:{
+                    leftVel = 8000;
+                    rightVel = 32000;
+                    leftDir = 0;
+                    rightDir = 0;
+                    break;
+                }
+                default:{
+                    lineVel = Ballanced;
+                }
+            }
+            drive();
             break;
         }
         case Hidden:{
             line = StopLine;
+            stop();
             break;
         }
         default:{
             linePos = Hidden;
         }
     }
-    switch (lineVel){
-        case Ballanced:{
-            leftVel = 4000;
-            rightVel = 16000;
-            leftDir = 0;
-            rightDir = 0;
-            break;
-        }
-        case Turning:{
-            leftVel = 4000;
-            rightVel = 16000;
-            leftDir = 0;
-            rightDir = 0;
-            break;
-        }
-        default:{
-            lineVel = Ballanced;
-        }
-    }
-    drive();
 }
 
 void detectWalls(){
     if (ADC1BUF12 <= 2000){
-        canyonPos = Exit;
-    } else if (ADC1BUF4 >= 4000){
-        canyonPos = Right;
-    } else if (ADC1BUF14 >= 4000){
-        canyonPos = Left;
+        canyonPos = Exi;
     } else if (ADC1BUF13 >= 4000){
         canyonPos = For;
+    } else if (ADC1BUF14 >= 4000){
+        canyonPos = Lef;
     } else {
-        stop();
-        _T1IE = 0;
-        _OC2IF = 0;
-        _OC2IE = 1;
-        leftVel = 6000;
-        rightVel = 6000;
-        leftDir = 0;
-        rightDir = 0;
-        stepsL = 0;
-        drive();
-        while(stepsL < 400){}
-        stop();
-    }
+        canyonPos = Rig;
+    } 
 }
