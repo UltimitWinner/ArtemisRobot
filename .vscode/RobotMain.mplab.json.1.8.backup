@@ -1,14 +1,29 @@
 {
-    "version": "1.9",
+    "version": "1.8",
     "importedFrom": "./",
+    "configurations": [
+        {
+            "name": "default",
+            "id": "",
+            "device": "PIC24F16KA301",
+            "imageType": "application",
+            "imagePath": "./out/RobotMain/default.elf",
+            "toolProperties": "default-tool-base",
+            "tool": "Snap",
+            "packs": [
+                {
+                    "name": "PIC24F-KA-KL-KM_DFP",
+                    "vendor": "Microchip",
+                    "version": "1.5.253"
+                }
+            ],
+            "fileSet": "Project files",
+            "toolchain": "default-XC16"
+        }
+    ],
     "propertyGroups": [
         {
             "name": "default-uservariables",
-            "type": "uservariables",
-            "properties": {}
-        },
-        {
-            "name": "default-uservariables_1",
             "type": "uservariables",
             "properties": {}
         },
@@ -126,28 +141,6 @@
                 "*.mc3"
             ],
             "encoding": "ISO-8859-1"
-        }
-    ],
-    "configurations": [
-        {
-            "name": "default",
-            "id": "",
-            "device": "PIC24F16KA301",
-            "imageType": "application",
-            "imagePath": "./out/RobotMain/default.elf",
-            "toolProperties": "default-tool-base",
-            "tool": "Snap",
-            "packs": [
-                {
-                    "name": "PIC24F-KA-KL-KM_DFP",
-                    "vendor": "Microchip",
-                    "version": "1.5.253"
-                }
-            ],
-            "fileSet": "Project files",
-            "toolchain": "default-XC16",
-            "userVariables": "default-uservariables_1",
-            "includeLegacyMacros": true
         }
     ]
 }

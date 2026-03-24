@@ -35,7 +35,7 @@ unsigned int stepsL = 0; //steps by the left motor driver
 unsigned int stepsR = 0; //steps by the right motor driver
 //unsigned char fullTurn = 0;
 unsigned int time = 0; //clock cycles
-char canyon_done = 0;
+unsigned char canyon_done = 0;
 //Interrupt functions
 void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void){
     _T1IF = 0;
@@ -113,7 +113,7 @@ int main(void){
     _RCDIV = 0b0; //set post scaler to 1
 
     {// setting default states
-    state = Canyon;
+    state = Line;
     line = StopLine;
     linePos = Hidden;
     lineVel = Ballanced;
@@ -293,14 +293,17 @@ int main(void){
                     }
                 }
                 
-                // if(stepsL >= 7000){//Turning in to base
-                //     lineVel = Turning;
+                // if(stepsL >= 900){//Turning in to base
+                //     state = Done;
+                //     done = Stop;
+                //     break;
                 // }
 
-                 if(ADC1BUF4 <= 1300 && ADC1BUF14 <= 1300 && ADC1BUF12 > 2000 && canyon_done == 0){ // right sees wall, left sees wall, QRD sees no line
+                 if(ADC1BUF4 <= 1500 && ADC1BUF14 <= 1500){ // right sees wall, left sees wall, QRD sees no line
                      //note: add detection for ball return, ball collection
                      state = Canyon;
-                     forward(100);
+                     
+                     
                  }
                 
                 break;
@@ -332,6 +335,12 @@ int main(void){
                     case Front0:{
                         leftVel = 8000;
                         rightVel = 8000;
+                        if(ADC1BUF14 <= 700){
+                            rightVel = 10000;
+                        }
+                        if(ADC1BUF4 <= 700){
+                            leftVel = 10000;
+                        }
                         if(ADC1BUF13 <= 900){
                             canyon = Front;
                             stop();
@@ -346,7 +355,7 @@ int main(void){
                     case Exit:{
                         wait(20);
                         if(ADC1BUF14 <= 1400){
-                            forward(100);
+                            forward(300);
                             turn90r();
                             wait(40);
                         }else{
@@ -545,6 +554,8 @@ void wait(int ticks){
     TMR2 = 0;
     while (time < ticks){
     }
+    _OC2IE = 1;
+    _T1IE = 0;
 }
 
 void readline(){
@@ -614,6 +625,20 @@ void turn45l(){
     stepsL = 0;
     drive();
     while(stepsL < 131){}
+    stop();
+}
+void turn15l(){
+    stop();
+    _T1IE = 0;
+    _OC2IF = 0;
+    _OC2IE = 1;
+    leftVel = 12000;
+    rightVel = 6000;
+    leftDir = 0;
+    rightDir = 0;
+    stepsL = 0;
+    drive();
+    while(stepsL < 50){}
     stop();
 }
 
@@ -706,7 +731,7 @@ void right(){
                 }
                 case Turning:{
                     leftVel = 8000;
-                    rightVel = 32000;
+                    rightVel = 16000;
                     leftDir = 0;
                     rightDir = 0;
                     break;
