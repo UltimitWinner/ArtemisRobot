@@ -25,7 +25,7 @@ enum done {Sing, Stop} done;
 enum milestone5 {Forward1, Turn90, Forward2, Turn180, Forward3, Finished} milestone5;
 
 //variable/flag declarations
-unsigned char hasBall = 0;
+unsigned char hasBall = 1;
 unsigned int leftVel = 0; //corresponds to OC2RS, pin 4. Lower is Faster. Min is 65535, max is 1000
 unsigned int rightVel = 0; //corresponds to OC3RS, pin 5. Lower is Faster. Min is 65535, max is 1000
 unsigned char leftDir = 0; //corresponds to A1, pin 3. 0 is forward
@@ -104,14 +104,16 @@ void turn45r();
 void turn45l();
 void turn180();
 void forward(int steps);
+void back(int steps);
 void left();
 void right();
 void detectWalls();
+void dump();
 
 int main(void){
     //setup
     _RCDIV = 0b0; //set post scaler to 1
-
+    
     {// setting default states
     state = Line;
     line = StopLine;
@@ -126,7 +128,7 @@ int main(void){
     milestone5 = Forward1;
     }
     
-    {//pin declerations
+    {//pin declarations
     _TRISA0 = 1; //pin 2, photodiode laser (AN0)
     _TRISA1 = 1; //pin 3, photodiode ball (AN1)
     _TRISB0 = 0; //pin 4, left motor control (OC2)
@@ -150,8 +152,10 @@ int main(void){
 
     {//PWM setup
     //pin 14, servos
-    OC1CON1 = 0x1C06; //sets clock and edge alignment
+    OC1CON1 = 0x0C06; //sets OCTSEL to Timer 5 (011) and OCM to PWM (110)
     OC1CON2 = 0x001F; //sets to pwm
+    OC1RS = 1250; //sets duty cycle
+    OC1R = 80; //sets clock start, between 32 and 156
     //pin 4, left motor
     OC2CON1 = 0x1C06; //sets clock and edge alignment
     OC2CON2 = 0x001F; //sets to pwm
@@ -166,13 +170,18 @@ int main(void){
     {//timers setup
     T1CONbits.TON = 1; //Timer 1 on
     T1CONbits.TCS = 0; //internal clock
-    T1CONbits.TCKPS = 0b10; //prescaler of 1
-    PR1 = 3124; //period of 0.05 seconds
+    T1CONbits.TCKPS = 0b10; //prescaler of 64
+    PR1 = 3124; //period of 0.05 seconds (20 Hz)
 
     T2CONbits.TON = 1; //Timer 2 on
     T2CONbits.TCS = 0; //internal clock
     T2CONbits.TCKPS = 0b10; //prescaler of 64
-    PR2 = 3124; //period of 0.05 seconds
+    PR2 = 3124; //period of 0.05 seconds (20 Hz)
+
+    T5CONbits.TON = 1; //Timer 3 on
+    T5CONbits.TCS = 0; //internal clock
+    T5CONbits.TCKPS = 0b10; //prescaler of 64
+    PR5 = 1249; //period of 0.02 seconds (50 Hz)
     }
 
     {//interrupts setup
@@ -199,17 +208,8 @@ int main(void){
     while (1){//main loop
         switch(state){
             case Testing:{
-                wait(60);
-                turn180();
-                wait(60);
-                turn90l();
-                wait(60);
-                turn90r();
-                wait(60);
-                turn180();
-                wait(60);
-                forward(900);
-                while(1){}
+                wait(100);
+                dump();
                 break;
             }
             case Line:{
@@ -299,11 +299,17 @@ int main(void){
                 //     break;
                 // }
 
-                 if(ADC1BUF4 <= 1500 && ADC1BUF14 <= 1500){ // right sees wall, left sees wall, QRD sees no line
-                     //note: add detection for ball return, ball collection
-                     state = Canyon;
-                     
-                     
+                 if(ADC1BUF4 <= 1000){ // right sees wall, left sees wall, QRD sees no line
+                     wait(20);
+                     if(ADC1BUF14 <= 1000){
+                        state = Canyon;
+                     }
+                     if(hasBall == 0){
+                        state = Ball;
+                     }
+                     else{
+                        state = Dump;
+                     }
                  }
                 
                 break;
@@ -312,6 +318,30 @@ int main(void){
                 break;
             }
             case Dump:{
+                if(ADC1BUF11 <= 2000){
+                    forward(100);
+                    wait(5);
+                    turn90l();
+                    wait(5);
+                    forward(200);
+                    dump();
+                    back(200);
+                    wait(5);
+                    turn90r();
+                    wait(100);
+                }
+                else{
+                    forward(250);
+                    wait(5);
+                    turn90r();
+                    wait(5);
+                    forward(200);
+                    dump();
+                    back(200);
+                    wait(5);
+                    turn90l();
+                    wait(100);
+                }
                 break;
             }
             case Canyon:{
@@ -672,6 +702,22 @@ void forward(int steps){
     stop();
 }
 
+void back(int steps){
+    stop();
+    _T1IE = 0;
+    _OC2IF = 0;
+    _OC2IE = 1;
+    leftVel = 4000;
+    rightVel = 4000;
+    leftDir = 1;
+    rightDir = 1;
+    stepsL = 0;
+    drive();
+    while(stepsL < steps){}
+    stop();
+}
+
+
 void left(){
     switch (linePos){
         case LeftL:{
@@ -764,4 +810,10 @@ void detectWalls(){
     } else {
         canyonPos = Rig;
     } 
+}
+
+void dump(){
+    OC1R = 40;
+    wait(30);
+    OC1R = 80;
 }

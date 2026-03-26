@@ -65,10 +65,10 @@ Default Scalar Model: Small
 section                    address   length (PC units)   length (bytes) (dec)
 -------                    -------   -----------------   --------------------
 .text                        0x200               0x104           0x186  (390)
-.text                        0x304               0x718           0xaa4  (2724)
-.dinit                       0xa1c                 0x8             0xc  (12)
+.text                        0x304               0x7aa           0xb7f  (2943)
+.dinit                       0xaae                 0x8             0xc  (12)
 
-                 Total "program" memory used (bytes):          0xc36  (3126) 19%
+                 Total "program" memory used (bytes):          0xd11  (3345) 20%
 
 
 "data" Memory  [Origin = 0x800, Length = 0x800]
@@ -144,29 +144,30 @@ External Symbols in Program Memory (by address):
 
                   0x000200                  __resetPRI
                   0x00023c                  __psv_init
-                  0x000252                  __data_init
                   0x000252                  __data_init_standard
+                  0x000252                  __data_init
                   0x0002c8                  __T1Interrupt
                   0x0002da                  __OC2Interrupt
                   0x0002ec                  __OC3Interrupt
                   0x0002fe                  __DefaultInterrupt
                   0x000304                  _config_ADC
                   0x00035e                  _main
-                  0x0006ee                  _sing
-                  0x00070a                  _drive
-                  0x0007aa                  _stop
-                  0x0007c0                  _wait
-                  0x0007e2                  _readline
-                  0x000806                  _turn90r
-                  0x000832                  _turn90l
-                  0x00085e                  _turn45r
-                  0x00088a                  _turn45l
-                  0x0008b6                  _turn15l
-                  0x0008e0                  _turn180
-                  0x00090c                  _forward
-                  0x000938                  _left
-                  0x000992                  _right
-                  0x0009ea                  _detectWalls
+                  0x00072e                  _sing
+                  0x00074a                  _drive
+                  0x0007ea                  _stop
+                  0x000800                  _wait
+                  0x000822                  _readline
+                  0x000846                  _turn90r
+                  0x000872                  _turn90l
+                  0x00089e                  _turn45r
+                  0x0008ca                  _turn45l
+                  0x0008f6                  _turn15l
+                  0x000920                  _turn180
+                  0x00094c                  _forward
+                  0x000978                  _left
+                  0x0009d2                  _right
+                  0x000a2a                  _detectWalls
+                  0x000a5c                  _dump
 
 External Symbols in Program Memory (by name):
 
@@ -179,22 +180,23 @@ External Symbols in Program Memory (by name):
                   0x00023c                  __psv_init
                   0x000200                  __resetPRI
                   0x000304                  _config_ADC
-                  0x0009ea                  _detectWalls
-                  0x00070a                  _drive
-                  0x00090c                  _forward
-                  0x000938                  _left
+                  0x000a2a                  _detectWalls
+                  0x00074a                  _drive
+                  0x000a5c                  _dump
+                  0x00094c                  _forward
+                  0x000978                  _left
                   0x00035e                  _main
-                  0x0007e2                  _readline
-                  0x000992                  _right
-                  0x0006ee                  _sing
-                  0x0007aa                  _stop
-                  0x0008b6                  _turn15l
-                  0x0008e0                  _turn180
-                  0x00088a                  _turn45l
-                  0x00085e                  _turn45r
-                  0x000832                  _turn90l
-                  0x000806                  _turn90r
-                  0x0007c0                  _wait
+                  0x000822                  _readline
+                  0x0009d2                  _right
+                  0x00072e                  _sing
+                  0x0007ea                  _stop
+                  0x0008f6                  _turn15l
+                  0x000920                  _turn180
+                  0x0008ca                  _turn45l
+                  0x00089e                  _turn45r
+                  0x000872                  _turn90l
+                  0x000846                  _turn90r
+                  0x000800                  _wait
 
 Memory Configuration
 
@@ -303,26 +305,26 @@ __FDS
 .comment
  *(.comment)
 
-.debug_info       0x000000       0x22b6
+.debug_info       0x000000       0x247a
  *(.debug_info)
- .debug_info      0x000000       0x22b6 build/default/production/mainXC16.o
+ .debug_info      0x000000       0x247a build/default/production/mainXC16.o
  *(.gnu.linkonce.wi.*)
 
-.debug_abbrev     0x000000        0x180
+.debug_abbrev     0x000000        0x1cd
  *(.debug_abbrev)
- .debug_abbrev    0x000000        0x180 build/default/production/mainXC16.o
+ .debug_abbrev    0x000000        0x1cd build/default/production/mainXC16.o
 
-.debug_line       0x000000        0x2ff
+.debug_line       0x000000        0x319
  *(.debug_line)
- .debug_line      0x000000        0x2ff build/default/production/mainXC16.o
+ .debug_line      0x000000        0x319 build/default/production/mainXC16.o
 
-.debug_frame      0x000000        0x23a
+.debug_frame      0x000000        0x254
  *(.debug_frame)
- .debug_frame     0x000000        0x23a build/default/production/mainXC16.o
+ .debug_frame     0x000000        0x254 build/default/production/mainXC16.o
 
-.debug_str        0x000000        0x126
+.debug_str        0x000000        0x148
  *(.debug_str)
- .debug_str       0x000000        0x126 build/default/production/mainXC16.o
+ .debug_str       0x000000        0x148 build/default/production/mainXC16.o
 
 .debug_loc
  *(.debug_loc)
@@ -331,10 +333,10 @@ __FDS
  *(.debug_macinfo)
 
 .debug_pubnames
-                  0x000000        0x1fb
+                  0x000000        0x204
  *(.debug_pubnames)
  .debug_pubnames
-                  0x000000        0x1fb build/default/production/mainXC16.o
+                  0x000000        0x204 build/default/production/mainXC16.o
 
 .debug_ranges
  *(.debug_ranges)
@@ -962,18 +964,18 @@ LOAD default_isr
 LOAD data_init
 
 .debug_pubtypes
-                  0x000018        0x2b6
+                  0x000018        0x2d5
  .debug_pubtypes
-                  0x000018        0x2b6 build/default/production/mainXC16.o
+                  0x000018        0x2d5 build/default/production/mainXC16.o
 
 __c30_signature
-                  0x0002ce         0x12
+                  0x0002ed         0x12
  __c30_signature
-                  0x0002ce          0x6 build/default/production/mainXC16.o
+                  0x0002ed          0x6 build/default/production/mainXC16.o
  __c30_signature
-                  0x0002d4          0x6 c:/program files/microchip/xc16/v2.10/bin/bin/../../lib\libc99-pic30-elf.a(crt0_standard.o)
+                  0x0002f3          0x6 c:/program files/microchip/xc16/v2.10/bin/bin/../../lib\libc99-pic30-elf.a(crt0_standard.o)
  __c30_signature
-                  0x0002da          0x6 c:/program files/microchip/xc16/v2.10/bin/bin/../../lib\libc99-pic30-elf.a(data_init_standard.o)
+                  0x0002f9          0x6 c:/program files/microchip/xc16/v2.10/bin/bin/../../lib\libc99-pic30-elf.a(data_init_standard.o)
 
 .nbss               0x0800         0x28
  .nbss              0x0800         0x28 build/default/production/mainXC16.o
@@ -1020,25 +1022,26 @@ __c30_signature
  .ivt._OC3Interrupt
                   0x000046          0x2 build/default/production/mainXC16.o
 
-.text             0x000304        0x718
- .text            0x000304        0x718 build/default/production/mainXC16.o
+.text             0x000304        0x7aa
+ .text            0x000304        0x7aa build/default/production/mainXC16.o
                   0x000304                  _config_ADC
                   0x00035e                  _main
-                  0x0006ee                  _sing
-                  0x00070a                  _drive
-                  0x0007aa                  _stop
-                  0x0007c0                  _wait
-                  0x0007e2                  _readline
-                  0x000806                  _turn90r
-                  0x000832                  _turn90l
-                  0x00085e                  _turn45r
-                  0x00088a                  _turn45l
-                  0x0008b6                  _turn15l
-                  0x0008e0                  _turn180
-                  0x00090c                  _forward
-                  0x000938                  _left
-                  0x000992                  _right
-                  0x0009ea                  _detectWalls
+                  0x00072e                  _sing
+                  0x00074a                  _drive
+                  0x0007ea                  _stop
+                  0x000800                  _wait
+                  0x000822                  _readline
+                  0x000846                  _turn90r
+                  0x000872                  _turn90l
+                  0x00089e                  _turn45r
+                  0x0008ca                  _turn45l
+                  0x0008f6                  _turn15l
+                  0x000920                  _turn180
+                  0x00094c                  _forward
+                  0x000978                  _left
+                  0x0009d2                  _right
+                  0x000a2a                  _detectWalls
+                  0x000a5c                  _dump
 
-.dinit            0x000a1c          0x8
- .dinit           0x000a1c          0x8 data_init
+.dinit            0x000aae          0x8
+ .dinit           0x000aae          0x8 data_init
