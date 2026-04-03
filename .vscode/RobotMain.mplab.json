@@ -114,7 +114,9 @@
         {
             "name": "default-tool-base",
             "type": "tool",
-            "properties": {}
+            "properties": {
+                "AutoSelectMemRanges": "auto"
+            }
         }
     ],
     "fileSets": [
